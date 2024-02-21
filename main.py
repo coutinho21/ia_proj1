@@ -1,9 +1,11 @@
 import pygame
 from math import *
+from object import Object
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
+test =  Object(100, 100)
 running = True
 dt = 0
 pi2 = 2 * 3.14
@@ -23,6 +25,7 @@ width = 61
 height = 70
 
 def drawBoard():
+        test.draw(screen)
         temp = 0
         for j in range(5,9):
             for i in range(j):
