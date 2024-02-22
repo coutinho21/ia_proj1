@@ -3,14 +3,16 @@ import sys
 from object import Object
 
 class Piece(Object) :
-    def __init__(self, x, y, color):
-        super().__init__(x, y)
+    def __init__(self, position, color):
+        super().__init__(position)
         self.color = color
-        self.radius = 35
+        self.radius = 25
+        self.position = position
 
     def draw(self, screen):
-        pygame.draw.circle(screen, self.color, (self.x, self.y), self.radius)
+        pygame.draw.circle(screen, self.color, self.position, self.radius)
 
     def move(self, dx, dy):
         self.x += dx
         self.y += dy
+
