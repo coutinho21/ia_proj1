@@ -1,11 +1,11 @@
 import pygame
 from math import *
 from object import Object
+from hexagon import Hexagon
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
 clock = pygame.time.Clock()
-test =  Object(100, 100)
 running = True
 dt = 0
 pi2 = 2 * 3.14
@@ -13,30 +13,31 @@ pi2 = 2 * 3.14
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
-def draw_hexagon(Surface, color, radius, position):
-    print([(sin(i / 6 * pi2) * radius + position[0], cos(i / 6 * pi2) * radius + position[1]) for i in range(0, 6)])
-    return pygame.draw.lines(Surface,
-          color,
-          True,
-          [(sin(i / 6 * pi2) * radius + position[0], cos(i / 6 * pi2) * radius + position[1]) for i in range(0, 6)])
 
 
-width = 61
-height = 70
+
+radius = 45
+width = sqrt(3) * (radius)
+height = 2 * radius
+hexagons = []
 
 def drawBoard():
-        test.draw(screen)
         temp = 0
+        
         for j in range(5,9):
             for i in range(j):
-                draw_hexagon(screen, "black", 35, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height))
+                hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height)))
             temp += 1
         for j in range(9, 4, -1):
             for i in range(j):
-                draw_hexagon(screen, "black", 35, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height))
+                hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height)))
             temp += 1
-             
-
+        for i in range(len(hexagons)):
+            hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
+            font = pygame.font.Font(None, 15)
+            text = font.render(str(i+1), 1, (10, 10, 10))
+            hexagons[i].Surface.blit(text, (hexagons[i].position[0] - 15, hexagons[i].position[1] - 15))
+        hexagons.clear()
 
 while running:
     # poll for events
