@@ -57,17 +57,17 @@ def piecesInit():
     j2 = 42
     k2 = 8
     while i1 < 19 and j1 < 26:
-        blue_pieces.append(Piece(hexagons[i1].position, 'blue'))
-        red_pieces.append(Piece(hexagons[j1].position, 'red'))
+        blue_pieces.append(Piece(hexagons[i1].position, 'blue', i1))
+        red_pieces.append(Piece(hexagons[j1].position, 'red', j1))
         i1 += k1
         j1 += k1 + 1
         k1 += 1
-    blue_pieces.append(Piece(hexagons[27].position, 'blue'))
-    red_pieces.append(Piece(hexagons[33].position, 'red'))
+    blue_pieces.append(Piece(hexagons[27].position, 'blue',27))
+    red_pieces.append(Piece(hexagons[33].position, 'red',33))
     
     while i2 < 57 and j2 < 61:
-        blue_pieces.append(Piece(hexagons[i2].position, 'blue'))
-        red_pieces.append(Piece(hexagons[j2].position, 'red'))
+        blue_pieces.append(Piece(hexagons[i2].position, 'blue', i2))
+        red_pieces.append(Piece(hexagons[j2].position, 'red', j2))
         i2 += k2
         j2 += k2 - 1
         k2 -= 1
@@ -102,16 +102,24 @@ while running:
     # linha a meio do ecra
     # pygame.draw.line(screen, "green", (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
 
-    keys = pygame.key.get_pressed()
-    if keys[pygame.K_w]:
-        player_pos.y -= 300 * dt
-    if keys[pygame.K_s]:
-        player_pos.y += 300 * dt
-    if keys[pygame.K_a]:
-        player_pos.x -= 300 * dt
-    if keys[pygame.K_d]:
-        player_pos.x += 300 * dt
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            # Get the current mouse position
+            mouse_pos = pygame.mouse.get_pos()
 
+            # Check if any blue piece was clicked
+            for piece in blue_pieces:
+                if piece.is_clicked():
+                    #move piece
+                    print(f"A blue piece at {piece.pos_n} was clicked")
+
+            # Check if any red piece was clicked
+            for piece in red_pieces:
+                if piece.is_clicked():
+                    #move piece
+                    print(f"A red piece at {piece.pos_n} was clicked")
     # flip() the display to put your work on screen
     pygame.display.flip()
 
