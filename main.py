@@ -26,13 +26,16 @@ red_pieces = []
 
 def initBoard():
     temp = 0
+    counter = 0
     for j in range(5,9):
         for i in range(j):
-            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height)))
+            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
+            counter += 1
         temp += 1
     for j in range(9, 4, -1):
         for i in range(j):
-            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height)))
+            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
+            counter += 1
         temp += 1
     
 
@@ -45,7 +48,7 @@ def drawBoard():
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
             text = font.render(str(i+1), 1, (10, 10, 10))
-            hexagons[i].Surface.blit(text, (hexagons[i].position[0] - 25, hexagons[i].position[1] - 25))
+            hexagons[i].Surface.blit(text, (hexagons[i].position[0] - 27, hexagons[i].position[1] - 27))
 
 
 
@@ -81,7 +84,39 @@ def drawPieces():
     for i in range(len(red_pieces)):
         Piece.draw(red_pieces[i],screen)
    
+def getNearByHexagons(piece):
+    nearby_hexagons = []
+    for hexagon in hexagons:
+        if (hexagon.distance_to(piece) <= 2 * radius) and (hexagon.pos_n != piece.pos_n):
+            nearby_hexagons.append(hexagon)
+    return nearby_hexagons
 
+def movePiece(piece, nearby_hexagons, same_color_p):
+    while True:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                return
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                check = False
+                for hexagon in nearby_hexagons:
+                    if hexagon.is_clicked():
+                        check = True
+                        for p in same_color_p:
+                            if p.pos_n == hexagon.pos_n:
+                                print("There is already a piece in that position")
+                                return
+                            if hexagon.base != None:
+                                print("There is a base in that position")
+                                return
+                        print(f"Moving piece from {piece.pos_n} to {hexagon.pos_n}")
+                        Piece.move(piece, hexagon.pos_n, hexagon.position)
+                        return
+                if check == False:
+                    print("Else was clicked")
+                    return
+                break
+            
 
 initBoard()
 piecesInit()
@@ -89,11 +124,6 @@ piecesInit()
 
 
 while running:
-    # poll for events
-    # pygame.QUIT event means the user clicked X to close your window
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
 
     screen.fill((220,190,131))
     drawBoard()
@@ -106,20 +136,18 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Get the current mouse position
-            mouse_pos = pygame.mouse.get_pos()
-
             # Check if any blue piece was clicked
             for piece in blue_pieces:
                 if piece.is_clicked():
-                    #move piece
-                    print(f"A blue piece at {piece.pos_n} was clicked")
+                    nearby_hexagons = getNearByHexagons(piece)
+                    movePiece(piece, nearby_hexagons, blue_pieces)
 
             # Check if any red piece was clicked
             for piece in red_pieces:
                 if piece.is_clicked():
-                    #move piece
-                    print(f"A red piece at {piece.pos_n} was clicked")
+                    nearby_hexagons = getNearByHexagons(piece)
+                    movePiece(piece, nearby_hexagons, red_pieces)
+
     # flip() the display to put your work on screen
     pygame.display.flip()
 

@@ -23,5 +23,6 @@ class Piece(Object) :
     # If the distance is less than the radius, the mouse click is inside the piece
         return distance <= self.radius
     
-    def move(self, position):
-        position = position
+    def move(self, pos_to, position_to):
+        self.position = position_to
+        self.pos_n = pos_to
