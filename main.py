@@ -14,7 +14,12 @@ pi2 = 2 * 3.14
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
-
+# GOAL CELL - The marked cell on the opposite side of the board.
+# 	BLOCKED STONE - A stone adjacent to an enemy stone.
+# 	TURN - At each turn, each player must move one of his non-blocked stones:
+# 	A stone may move to an adjacent empty cell or jump over a line of friendly stones landing on the immediate next cell. It that cell is occupied by an enemy stone, that stone is captured.
+# 	A stone cannot move into the opponent's goal cell.
+# 	GOAL - Wins the player that moves a stone into his own goal cell or stalemates the opponent. 
 
 
 radius = 45
@@ -105,29 +110,32 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                         for p in same_color_p:
                             if p.pos_n == hexagon.pos_n:
                                 print("There is already a piece in that position")
-                                return
+                                return False
                             if hexagon.base != None:
                                 print("There is a base in that position")
-                                return
+                                return False
                         print(f"Moving piece from {piece.pos_n} to {hexagon.pos_n}")
                         Piece.move(piece, hexagon.pos_n, hexagon.position)
-                        return
+                        return True
                 if check == False:
                     print("Else was clicked")
-                    return
+                    return False
                 break
             
 
 initBoard()
 piecesInit()
 
-
+turn = "blue" # sortear o turno eventualmente
 
 while running:
 
     screen.fill((220,190,131))
     drawBoard()
     drawPieces()
+
+
+     
 
     # linha a meio do ecra
     # pygame.draw.line(screen, "green", (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
@@ -136,17 +144,26 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            # Check if any blue piece was clicked
-            for piece in blue_pieces:
-                if piece.is_clicked():
-                    nearby_hexagons = getNearByHexagons(piece)
-                    movePiece(piece, nearby_hexagons, blue_pieces)
-
-            # Check if any red piece was clicked
-            for piece in red_pieces:
-                if piece.is_clicked():
-                    nearby_hexagons = getNearByHexagons(piece)
-                    movePiece(piece, nearby_hexagons, red_pieces)
+            if turn == "blue":
+                for piece in blue_pieces:
+                    if piece.is_clicked():
+                        nearby_hexagons = getNearByHexagons(piece)
+                        chage_turn = movePiece(piece, nearby_hexagons, blue_pieces)
+                        if chage_turn == True:
+                            turn = "red"
+                            print("Changed turn to red")
+                            break
+                            
+            if turn == "red":
+                for piece in red_pieces:
+                    if piece.is_clicked():
+                        nearby_hexagons = getNearByHexagons(piece)
+                        change_turn = movePiece(piece, nearby_hexagons, red_pieces)
+                        if change_turn == True:
+                            turn = "blue"
+                            print("Changed turn to blue")
+                            break
+                            
 
     # flip() the display to put your work on screen
     pygame.display.flip()
