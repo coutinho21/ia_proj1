@@ -1,4 +1,3 @@
-
 class Object:
     def __init__(self, position):
         self.x = position[0]

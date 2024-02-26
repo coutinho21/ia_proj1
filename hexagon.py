@@ -3,8 +3,6 @@ from math import *
 from object import Object
 
 class Hexagon(Object) :
-    
-
     def __init__(self, Surface, color, radius, position,pos_n, base = None):
         super().__init__(position)
         self.color = color
@@ -13,6 +11,7 @@ class Hexagon(Object) :
         self.position = position
         self.pos_n = pos_n
         self.base = base
+
 
     def draw(self, Surface, color, radius, position):
         pi2 = 2 * 3.14
@@ -23,10 +22,12 @@ class Hexagon(Object) :
         if(self.base != None):
             pygame.draw.circle(Surface, self.base, (int(position[0]), int(position[1])), 16, 0)
 
+
     def distance_to(self, piece):
         # Calculate the distance between the hexagon's center and the piece's center
         return sqrt((self.position.x - piece.position.x) ** 2 + (self.position.y - piece.position.y) ** 2)
-    
+
+
     def is_clicked(self):
         pos = pygame.mouse.get_pos()
     # Calculate the Euclidean distance between the piece's center and the mouse position

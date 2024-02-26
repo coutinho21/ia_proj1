@@ -1,4 +1,5 @@
 import pygame
+import random
 from math import *
 from hexagon import Hexagon
 from piece import Piece
@@ -10,10 +11,7 @@ running = True
 dt = 0
 pi2 = 2 * 3.14
 
-
-player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
-
-# GOAL CELL - The marked cell on the opposite side of the board.
+#   GOAL CELL - The marked cell on the opposite side of the board.
 # 	BLOCKED STONE - A stone adjacent to an enemy stone.
 # 	TURN - At each turn, each player must move one of his non-blocked stones:
 # 	A stone may move to an adjacent empty cell or jump over a line of friendly stones landing on the immediate next cell. It that cell is occupied by an enemy stone, that stone is captured.
@@ -69,9 +67,10 @@ def piecesInit():
         i1 += k1
         j1 += k1 + 1
         k1 += 1
+
     blue_pieces.append(Piece(hexagons[27].position, 'blue',27))
     red_pieces.append(Piece(hexagons[33].position, 'red',33))
-    
+
     while i2 < 57 and j2 < 61:
         blue_pieces.append(Piece(hexagons[i2].position, 'blue', i2))
         red_pieces.append(Piece(hexagons[j2].position, 'red', j2))
@@ -93,13 +92,15 @@ def drawPieces():
         Piece.draw(blue_pieces[j],screen)
     for i in range(len(red_pieces)):
         Piece.draw(red_pieces[i],screen)
-   
-def getNearByHexagons(piece):
+
+
+def getNearbyHexagons(piece):
     nearby_hexagons = []
     for hexagon in hexagons:
         if (hexagon.distance_to(piece) <= 2 * radius) and (hexagon.pos_n != piece.pos_n):
             nearby_hexagons.append(hexagon)
     return nearby_hexagons
+
 
 def movePiece(piece, nearby_hexagons, same_color_p):
     while True:
@@ -136,8 +137,12 @@ def movePiece(piece, nearby_hexagons, same_color_p):
 
 initBoard()
 piecesInit()
+random.seed()
 
-turn = 'blue' # sortear o turno eventualmente
+if random.randint(0, 1) == 0:
+    turn = 'red'
+else:
+    turn = 'blue'
 
 while running:
 
@@ -162,7 +167,7 @@ while running:
             if turn == 'blue':
                 for piece in blue_pieces:
                     if piece.is_clicked():
-                        nearby_hexagons = getNearByHexagons(piece)
+                        nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces)
                         if change_turn == True:
                             turn = 'red'
@@ -172,7 +177,7 @@ while running:
             if turn == 'red':
                 for piece in red_pieces:
                     if piece.is_clicked():
-                        nearby_hexagons = getNearByHexagons(piece)
+                        nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces)
                         if change_turn == True:
                             turn = 'blue'
