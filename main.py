@@ -120,7 +120,8 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                             if hexagon.base != None:
                                 print('There is a base in that position')
                                 return False
-                        print(f'Moving piece from {piece.pos_n} to {hexagon.pos_n}')
+                        
+                        print(f'Moving piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
                         Piece.move(piece, hexagon.pos_n, hexagon.position)
                         return True
                 if check == False:
@@ -155,7 +156,7 @@ while running:
     else:
         drawText("Red's turn", 'red', 40, 150, 100)
 
- 
+
 
     # linha a meio do ecra
     # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
@@ -166,6 +167,8 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if turn == 'blue':
                 for piece in blue_pieces:
+                    print('Blue piece: ', end="")
+                    print(piece)
                     if piece.is_clicked():
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces)
@@ -176,6 +179,8 @@ while running:
                             
             if turn == 'red':
                 for piece in red_pieces:
+                    print('Red piece: ', end="")
+                    print(piece)
                     if piece.is_clicked():
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces)
