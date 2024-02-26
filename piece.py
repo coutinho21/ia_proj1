@@ -1,6 +1,5 @@
 from math import sqrt
 import pygame
-import sys
 from object import Object
 
 class Piece(Object) :

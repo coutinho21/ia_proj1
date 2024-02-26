@@ -1,6 +1,5 @@
 import pygame
 from math import *
-from object import Object
 from hexagon import Hexagon
 from piece import Piece
 
@@ -34,12 +33,12 @@ def initBoard():
     counter = 0
     for j in range(5,9):
         for i in range(j):
-            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
+            hexagons.append(Hexagon(screen, 'black', radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
             counter += 1
         temp += 1
     for j in range(9, 4, -1):
         for i in range(j):
-            hexagons.append(Hexagon(screen, "black", radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
+            hexagons.append(Hexagon(screen, 'black', radius, pygame.Vector2(screen.get_width() / 2 + width*i - width * (j/2 - 0.5), screen.get_height() / 2 + ((height/4)*3)*temp - 3 * height),counter))
             counter += 1
         temp += 1
     
@@ -47,9 +46,9 @@ def initBoard():
 def drawBoard():
         for i in range(len(hexagons)):
             if(i == 26) : 
-                hexagons[i].base = "red"
+                hexagons[i].base = 'red'
             if(i == 34) :
-                hexagons[i].base = "blue"
+                hexagons[i].base = 'blue'
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
             text = font.render(str(i+1), 1, (10, 10, 10))
@@ -80,7 +79,13 @@ def piecesInit():
         j2 += k2 - 1
         k2 -= 1
     
-        
+
+def drawText(inputText, color, fontSize, x, y):
+    font = pygame.font.Font(None, fontSize)
+    text = font.render(inputText, True, color)
+    textRect = text.get_rect()
+    textRect.center = (x, y)
+    screen.blit(text, textRect)
 
 
 def drawPieces():
@@ -109,24 +114,30 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                         check = True
                         for p in same_color_p:
                             if p.pos_n == hexagon.pos_n:
-                                print("There is already a piece in that position")
+                                print('There is already a piece in that position')
                                 return False
                             if hexagon.base != None:
-                                print("There is a base in that position")
+                                print('There is a base in that position')
                                 return False
-                        print(f"Moving piece from {piece.pos_n} to {hexagon.pos_n}")
+                        print(f'Moving piece from {piece.pos_n} to {hexagon.pos_n}')
                         Piece.move(piece, hexagon.pos_n, hexagon.position)
                         return True
                 if check == False:
-                    print("Else was clicked")
+                    print('Else was clicked')
                     return False
                 break
             
 
+
+
+##
+##    MAIN LOOP
+##           
+
 initBoard()
 piecesInit()
 
-turn = "blue" # sortear o turno eventualmente
+turn = 'blue' # sortear o turno eventualmente
 
 while running:
 
@@ -134,34 +145,38 @@ while running:
     drawBoard()
     drawPieces()
 
+    if turn == 'blue':
+        drawText("Blue's turn", 'blue', 40, 150, 100)
+    else:
+        drawText("Red's turn", 'red', 40, 150, 100)
 
-     
+ 
 
     # linha a meio do ecra
-    # pygame.draw.line(screen, "green", (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+    # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            if turn == "blue":
+            if turn == 'blue':
                 for piece in blue_pieces:
                     if piece.is_clicked():
                         nearby_hexagons = getNearByHexagons(piece)
-                        chage_turn = movePiece(piece, nearby_hexagons, blue_pieces)
-                        if chage_turn == True:
-                            turn = "red"
-                            print("Changed turn to red")
+                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces)
+                        if change_turn == True:
+                            turn = 'red'
+                            print('Changed turn to red')
                             break
                             
-            if turn == "red":
+            if turn == 'red':
                 for piece in red_pieces:
                     if piece.is_clicked():
                         nearby_hexagons = getNearByHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces)
                         if change_turn == True:
-                            turn = "blue"
-                            print("Changed turn to blue")
+                            turn = 'blue'
+                            print('Changed turn to blue')
                             break
                             
 

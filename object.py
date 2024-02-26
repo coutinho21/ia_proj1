@@ -1,5 +1,3 @@
-import pygame
-import sys
 
 class Object:
     def __init__(self, position):

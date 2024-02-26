@@ -1,5 +1,4 @@
 import pygame
-import sys
 from math import *
 from object import Object
 
