@@ -177,7 +177,7 @@ while running:
                             print('Changed turn to red')
                             break
                             
-            if turn == 'red':
+            elif turn == 'red':
                 for piece in red_pieces:
                     print('Red piece: ', end="")
                     print(piece)
