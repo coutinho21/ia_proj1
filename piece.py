@@ -3,13 +3,14 @@ import pygame
 from object import Object
 
 class Piece(Object) :
-    def __init__(self, position, color, pos_n, selected = False):
+    def __init__(self, position, color, pos_n, selected = False, isBlocked = False):
         super().__init__(position)
         self.color = color
         self.radius = 25
         self.position = position
         self.pos_n = pos_n
         self.selected = selected
+        self.isBlocked = isBlocked
 
 
     def draw(self, screen):

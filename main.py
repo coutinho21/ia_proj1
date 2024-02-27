@@ -102,7 +102,7 @@ def getNearbyHexagons(piece):
     return nearby_hexagons
 
 
-def movePiece(piece, nearby_hexagons, same_color_p):
+def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -112,6 +112,9 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                 check = False
                 for hexagon in nearby_hexagons:
                     if hexagon.is_clicked():
+                        if piece.isBlocked:
+                            print(f'Piece {piece.pos_n + 1} is blocked')
+                            return False
                         check = True
                         for p in same_color_p:
                             if p.pos_n == hexagon.pos_n:
@@ -120,7 +123,10 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                             if hexagon.base != None:
                                 print('There is a base in that position')
                                 return False
-                        
+                        for p in other_color_p:
+                            if p.pos_n == hexagon.pos_n:
+                                print('There is an enemy piece in that position')
+                                return False
                         print(f'Moving piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
                         Piece.move(piece, hexagon.pos_n, hexagon.position)
                         return True
@@ -128,8 +134,24 @@ def movePiece(piece, nearby_hexagons, same_color_p):
                     print('Else was clicked')
                     return False
                 break
-            
 
+
+def getHexagonByPos(pos):
+        for hexagon in hexagons:
+            if hexagon.pos_n == pos:
+                return hexagon
+        return None
+
+def checkBlock(piece, other_color_p):
+    for p in other_color_p:
+        hexagon = getHexagonByPos(piece.pos_n)
+        if hexagon in getNearbyHexagons(p):
+            piece.isBlocked = True
+            p.isBlocked = True
+            return True
+    piece.isBlocked = False
+    return False
+    
 
 
 ##
@@ -167,24 +189,22 @@ while running:
         elif event.type == pygame.MOUSEBUTTONDOWN:
             if turn == 'blue':
                 for piece in blue_pieces:
-                    print('Blue piece: ', end="")
-                    print(piece)
                     if piece.is_clicked():
                         nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces)
+                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
                         if change_turn == True:
+                            checkBlock(piece, red_pieces)
                             turn = 'red'
                             print('Changed turn to red')
                             break
-                            
+
             elif turn == 'red':
                 for piece in red_pieces:
-                    print('Red piece: ', end="")
-                    print(piece)
                     if piece.is_clicked():
                         nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, red_pieces)
+                        change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
                         if change_turn == True:
+                            checkBlock(piece, blue_pieces)
                             turn = 'blue'
                             print('Changed turn to blue')
                             break
