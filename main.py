@@ -4,6 +4,7 @@ from utils import *
 from math import *
 from hexagon import Hexagon
 from piece import Piece
+from state import GameState
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
@@ -26,6 +27,9 @@ height = 2 * radius
 hexagons = []
 blue_pieces = []
 red_pieces = []
+state = GameState.PLAYING
+
+
 
 def initBoard():
     temp = 0
@@ -97,7 +101,7 @@ def getNearbyHexagons(piece):
     return nearby_hexagons
 
 
-def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p, vector = None):
+def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
     if piece == None or hexagon == None:
         return False
     new_piece = getPieceByPos(hexagon.pos_n)
@@ -116,7 +120,6 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p, vector = Non
             best = dist
             best_hex = hex
     
- #   if 
 
     nearby_goal = getNearbyHexagons(hexagon)
     new_near_piece = getPieceByPos(best_hex.pos_n)
@@ -147,7 +150,9 @@ def checkBlockChange(piece):
                 checkBlock(piece, red_pieces)
 
 
+
 def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
+    global state
     while True:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -181,9 +186,16 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                 print('That is not your base')
                                 return False
                             if hexagon.base == piece.color:
-                                print('You win')
-                                #implement win status
+                                if piece.color == 'red':
+                                    print('You win')
+                                    state = GameState.RED_WON
+                                elif piece.color == 'blue':
+                                    print('You win')
+                                    state = GameState.BLUE_WON
+                                
+                                Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 return True
+                            
                         for p in other_color_p:
                             if p.pos_n == hexagon.pos_n:
                                 print('There is an enemy piece in that position')
@@ -240,47 +252,68 @@ else:
 
 while running:
 
-    screen.fill((220,190,131))
-    drawBoard()
-    drawPieces()
 
-    if turn == 'blue':
-        drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
+    if state == GameState.PLAYING:
+        screen.fill((220,190,131))
+        drawBoard()
+        drawPieces()
+
+        if turn == 'blue':
+            drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
+        else:
+            drawText(screen, "Red's turn", 'red', 40, 150, 100)
+
+
+
+        # linha a meio do ecra
+        # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if turn == 'blue':
+                    for piece in blue_pieces:
+                        if piece.is_clicked():
+                            piece.selected = True
+                            nearby_hexagons = getNearbyHexagons(piece)
+                            change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
+                            if change_turn and state == GameState.PLAYING:
+                                checkBlock(piece, red_pieces)
+                                turn = 'red'
+                                print('Changed turn to red')
+                                break
+                            elif state == GameState.BLUE_WON:
+                                print('Blue won')
+                                break
+
+                elif turn == 'red':
+                    for piece in red_pieces:
+                        if piece.is_clicked():
+                            nearby_hexagons = getNearbyHexagons(piece)
+                            change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
+                            if change_turn and state == GameState.PLAYING:
+                                checkBlock(piece, blue_pieces)
+                                turn = 'blue'
+                                print('Changed turn to red')
+                                break
+                            elif state == GameState.RED_WON:
+                                print('Red won')
+                                break
     else:
-        drawText(screen, "Red's turn", 'red', 40, 150, 100)
+        screen.fill((220,190,131))
+        
+        if state == GameState.RED_WON:
+            drawText(screen, "Red won", 'red', 40, 150, 150)
+        elif state == GameState.BLUE_WON:
+            drawText(screen, "Blue won", 'blue', 40, 150, 150)
 
 
 
-    # linha a meio do ecra
-    # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+        
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if turn == 'blue':
-                for piece in blue_pieces:
-                    if piece.is_clicked():
-                        piece.selected = True
-                        nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
-                        if change_turn == True:
-                            checkBlock(piece, red_pieces)
-                            turn = 'red'
-                            print('Changed turn to red')
-                            break
 
-            elif turn == 'red':
-                for piece in red_pieces:
-                    if piece.is_clicked():
-                        nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
-                        if change_turn == True:
-                            checkBlock(piece, blue_pieces)
-                            turn = 'blue'
-                            print('Changed turn to blue')
-                            break
-                            
+    
 
     # flip() the display to put your work on screen
     pygame.display.flip()
@@ -290,4 +323,6 @@ while running:
     # independent physics.
     dt = clock.tick(60) / 1000
 
-pygame.quit()
+
+# if state == GameState.QUIT:
+#     pygame.quit()
