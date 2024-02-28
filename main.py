@@ -241,7 +241,7 @@ def play():
     global state
     
 
-    menuButton = Button((screen.get_width() - 200, screen.get_height()-60), 'red', 'Go back to Menu', (200, 60), GameState.MENU)
+    menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.MENU)
     
 
     screen.fill((220,190,131))
@@ -269,7 +269,6 @@ def play():
             if turn == 'blue':
                 for piece in blue_pieces:
                     if piece.is_clicked():
-                        piece.selected = True
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
                         if change_turn and state == GameState.PLAYING:
@@ -284,6 +283,7 @@ def play():
             elif turn == 'red':
                 for piece in red_pieces:
                     if piece.is_clicked():
+
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
                         if change_turn and state == GameState.PLAYING:
@@ -323,10 +323,10 @@ def winStates():
 def menu():
     global state
     screen.fill((220,190,131))
-    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
-    playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), 'green', 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
-    quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), 'red', 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
-    settingsButton = Button((screen.get_width() / 2 + 50, screen.get_height() / 2 + 60), 'blue', 'Settings', (60, 60), GameState.MENU, 32, 'hexagon')
+    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
+    playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
+    quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
+    settingsButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Settings', (60, 60), GameState.MENU, 32, 'hexagon')
     playButton.draw(screen)
     quitButton.draw(screen)
     settingsButton.draw(screen)

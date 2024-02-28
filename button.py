@@ -20,8 +20,13 @@ class Button(Object):
         if self.shape == 'hexagon':
             pi2 = 2 * 3.14
             points = [(sin(i / 6 * pi2) * self.size[0] + self.x, cos(i / 6 * pi2) * self.size[1] + self.y) for i in range(0, 6)]
-            #pygame.draw.lines(screen, self.color, True, points)
-            pygame.draw.polygon(screen, self.color, points)
+            mouse_pos = pygame.mouse.get_pos()
+            hexagon_rect = pygame.draw.polygon(screen, (220,190,131), points)
+            pygame.draw.lines(screen, self.color, True, points,3)
+
+            if hexagon_rect.collidepoint(mouse_pos):
+                pygame.draw.polygon(screen, self.color, points)
+
             drawText(screen, self.text, 'black', self.text_size, self.x , self.y )
 
     def is_clicked(self):
