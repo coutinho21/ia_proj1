@@ -1,9 +1,9 @@
 import pygame
 import random
+from utils import *
 from math import *
 from hexagon import Hexagon
 from piece import Piece
-from utils import drawText
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
@@ -88,11 +88,63 @@ def drawPieces():
 
 
 def getNearbyHexagons(piece):
+    if piece == None:
+        return None
     nearby_hexagons = []
     for hexagon in hexagons:
         if (hexagon.distance_to(piece) <= 2 * radius) and (hexagon.pos_n != piece.pos_n):
             nearby_hexagons.append(hexagon)
     return nearby_hexagons
+
+
+def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p, vector = None):
+    if piece == None or hexagon == None:
+        return False
+    new_piece = getPieceByPos(hexagon.pos_n)
+    if new_piece == None:
+        return False
+    if new_piece in same_color_p:
+        return False
+    
+    best = 100000
+    best_hex = None
+    for hex in getNearbyHexagons(piece):
+        if hex == None:
+            continue
+        dist = getDistance(hex.position, hexagon.position)
+        if dist < best:
+            best = dist
+            best_hex = hex
+    
+ #   if 
+
+    nearby_goal = getNearbyHexagons(hexagon)
+    new_near_piece = getPieceByPos(best_hex.pos_n)
+    
+    print(f'Best hexagon is {best_hex.pos_n + 1}')
+    for hex in nearby_goal:
+        print(f'Near goal hexagons are {hex.pos_n + 1}')
+    
+    if best_hex in nearby_goal:
+        print('is near')
+        if new_near_piece in same_color_p:
+            print('is same color')
+            return True
+        else:
+            return False
+    
+    return checkIfCanJumpOver(new_near_piece, hexagon, same_color_p, other_color_p)
+
+
+def checkBlockChange(piece):
+    hexagons = getNearbyHexagons(piece)
+    for hex in hexagons:
+        piece = getPieceByPos(hex.pos_n)
+        if piece != None:
+            if piece.color == 'red':
+                checkBlock(piece, blue_pieces)
+            else:
+                checkBlock(piece, red_pieces)
 
 
 def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
@@ -102,6 +154,18 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                 pygame.quit()
                 return
             if event.type == pygame.MOUSEBUTTONDOWN:
+                for hexagon in hexagons:
+                    if hexagon.is_clicked() and not piece.isBlocked:
+                        if hexagon not in nearby_hexagons:
+                            if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
+                                print(f'Jumping piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
+                                other_color_p.remove(getPieceByPos(hexagon.pos_n))
+                                Piece.move(piece, hexagon.pos_n, hexagon.position)
+                                checkBlockChange(piece)
+                                return True
+                            else:
+                                print('Cannot make that move')
+                                return False
                 check = False
                 for hexagon in nearby_hexagons:
                     if hexagon.is_clicked():
@@ -134,6 +198,16 @@ def getHexagonByPos(pos):
             if hexagon.pos_n == pos:
                 return hexagon
         return None
+
+def getPieceByPos(pos):
+    for piece in blue_pieces:
+        if piece.pos_n == pos:
+            return piece
+    for piece in red_pieces:
+        if piece.pos_n == pos:
+            return piece
+    return None
+
 
 def checkBlock(piece, other_color_p):
     for p in other_color_p:

@@ -24,6 +24,8 @@ class Hexagon(Object) :
 
 
     def distance_to(self, piece):
+        if piece is None:
+            return None
         # Calculate the distance between the hexagon's center and the piece's center
         return sqrt((self.position.x - piece.position.x) ** 2 + (self.position.y - piece.position.y) ** 2)
 
