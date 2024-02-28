@@ -177,9 +177,13 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                             if p.pos_n == hexagon.pos_n:
                                 print('There is already a piece in that position')
                                 return False
-                            if hexagon.base != None:
-                                print('There is a base in that position')
+                            if hexagon.base == other_color_p[0].color :
+                                print('That is not your base')
                                 return False
+                            if hexagon.base == piece.color:
+                                print('You win')
+                                #implement win status
+                                return True
                         for p in other_color_p:
                             if p.pos_n == hexagon.pos_n:
                                 print('There is an enemy piece in that position')
@@ -257,6 +261,7 @@ while running:
             if turn == 'blue':
                 for piece in blue_pieces:
                     if piece.is_clicked():
+                        piece.selected = True
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
                         if change_turn == True:
