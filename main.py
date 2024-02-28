@@ -88,6 +88,8 @@ def drawPieces():
 
 
 def getNearbyHexagons(piece):
+    if piece == None:
+        return None
     nearby_hexagons = []
     for hexagon in hexagons:
         if (hexagon.distance_to(piece) <= 2 * radius) and (hexagon.pos_n != piece.pos_n):
@@ -95,19 +97,27 @@ def getNearbyHexagons(piece):
     return nearby_hexagons
 
 
-def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
+def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p, vector = None):
+    if piece == None or hexagon == None:
+        return False
     new_piece = getPieceByPos(hexagon.pos_n)
+    if new_piece == None:
+        return False
     if new_piece in same_color_p:
         return False
     
     best = 100000
     best_hex = None
     for hex in getNearbyHexagons(piece):
+        if hex == None:
+            continue
         dist = getDistance(hex.position, hexagon.position)
         if dist < best:
             best = dist
             best_hex = hex
     
+ #   if 
+
     nearby_goal = getNearbyHexagons(hexagon)
     new_near_piece = getPieceByPos(best_hex.pos_n)
     
@@ -124,7 +134,18 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
             return False
     
     return checkIfCanJumpOver(new_near_piece, hexagon, same_color_p, other_color_p)
-        
+
+
+def checkBlockChange(piece):
+    hexagons = getNearbyHexagons(piece)
+    for hex in hexagons:
+        piece = getPieceByPos(hex.pos_n)
+        if piece != None:
+            if piece.color == 'red':
+                checkBlock(piece, blue_pieces)
+            else:
+                checkBlock(piece, red_pieces)
+
 
 def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
     while True:
@@ -140,6 +161,7 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                 print(f'Jumping piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
                                 other_color_p.remove(getPieceByPos(hexagon.pos_n))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
+                                checkBlockChange(piece)
                                 return True
                             else:
                                 print('Cannot make that move')
@@ -185,6 +207,7 @@ def getPieceByPos(pos):
         if piece.pos_n == pos:
             return piece
     return None
+
 
 def checkBlock(piece, other_color_p):
     for p in other_color_p:
