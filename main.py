@@ -3,6 +3,7 @@ import random
 from math import *
 from hexagon import Hexagon
 from piece import Piece
+from utils import drawText
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
@@ -77,14 +78,6 @@ def piecesInit():
         i2 += k2
         j2 += k2 - 1
         k2 -= 1
-    
-
-def drawText(inputText, color, fontSize, x, y):
-    font = pygame.font.Font(None, fontSize)
-    text = font.render(inputText, True, color)
-    textRect = text.get_rect()
-    textRect.center = (x, y)
-    screen.blit(text, textRect)
 
 
 def drawPieces():
@@ -174,9 +167,9 @@ while running:
     drawPieces()
 
     if turn == 'blue':
-        drawText("Blue's turn", 'blue', 40, 150, 100)
+        drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
     else:
-        drawText("Red's turn", 'red', 40, 150, 100)
+        drawText(screen, "Red's turn", 'red', 40, 150, 100)
 
 
 
