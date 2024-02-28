@@ -5,6 +5,7 @@ from math import *
 from hexagon import Hexagon
 from piece import Piece
 from state import GameState
+from button import Button
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
@@ -27,8 +28,7 @@ height = 2 * radius
 hexagons = []
 blue_pieces = []
 red_pieces = []
-state = GameState.PLAYING
-
+state = GameState.MENU
 
 
 def initBoard():
@@ -235,7 +235,109 @@ def checkBlock(piece, other_color_p):
     piece.isBlocked = False
     return False
     
+def play():
+    global turn
+    global running
+    global state
+    
 
+    menuButton = Button((screen.get_width() - 200, screen.get_height()-60), 'red', 'Go back to Menu', (200, 60), GameState.MENU)
+    
+
+    screen.fill((220,190,131))
+    drawBoard()
+    drawPieces()
+    menuButton.draw(screen)
+
+
+    if turn == 'blue':
+        drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
+    else:
+        drawText(screen, "Red's turn", 'red', 40, 150, 100)
+
+
+    # linha a meio do ecra
+    # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            if menuButton.is_clicked():
+                state = menuButton.action
+                break
+            if turn == 'blue':
+                for piece in blue_pieces:
+                    if piece.is_clicked():
+                        piece.selected = True
+                        nearby_hexagons = getNearbyHexagons(piece)
+                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
+                        if change_turn and state == GameState.PLAYING:
+                            checkBlock(piece, red_pieces)
+                            turn = 'red'
+                            print('Changed turn to red')
+                            break
+                        elif state == GameState.BLUE_WON:
+                            print('Blue won')
+                            break
+
+            elif turn == 'red':
+                for piece in red_pieces:
+                    if piece.is_clicked():
+                        nearby_hexagons = getNearbyHexagons(piece)
+                        change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
+                        if change_turn and state == GameState.PLAYING:
+                            checkBlock(piece, blue_pieces)
+                            turn = 'blue'
+                            print('Changed turn to red')
+                            break
+                        elif state == GameState.RED_WON:
+                            print('Red won')
+                            break
+
+
+
+
+
+def winStates():
+    global state
+    screen.fill((220,190,131))
+    if state == GameState.RED_WON:
+        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2)
+    elif state == GameState.BLUE_WON:
+        drawText(screen, "Blue won", 'blue', 40, screen.get_width() / 2, screen.get_height() / 2 - 50)
+
+    menuButton = Button((screen.get_width() / 2 - 50, screen.get_height() / 2 - 30), 'green', 'Menu', (100, 60), GameState.MENU)
+    menuButton.draw(screen)
+    quitButton = Button((screen.get_width() / 2 - 50, screen.get_height() / 2 + 70), 'red', 'Quit', (100, 60), GameState.QUIT)
+    quitButton.draw(screen)
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if the mouse click is within the menu area
+            if menuButton.is_clicked():
+                state = menuButton.action   
+            # Check if the mouse click is within the quit area
+            if quitButton.is_clicked():
+                state = quitButton.action
+
+def menu():
+    global state
+    screen.fill((220,190,131))
+    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
+    playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), 'green', 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
+    quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), 'red', 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
+    settingsButton = Button((screen.get_width() / 2 + 50, screen.get_height() / 2 + 60), 'blue', 'Settings', (60, 60), GameState.MENU, 32, 'hexagon')
+    playButton.draw(screen)
+    quitButton.draw(screen)
+    settingsButton.draw(screen)
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            # Check if the mouse click is within the play area
+            if playButton.is_clicked():
+                state = playButton.action
+            # Check if the mouse click is within the quit area
+            if quitButton.is_clicked():
+                state = quitButton.action
 
 ##
 ##    MAIN LOOP
@@ -251,69 +353,16 @@ else:
     turn = 'blue'
 
 while running:
-
-
-    if state == GameState.PLAYING:
-        screen.fill((220,190,131))
-        drawBoard()
-        drawPieces()
-
-        if turn == 'blue':
-            drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
-        else:
-            drawText(screen, "Red's turn", 'red', 40, 150, 100)
-
-
-
-        # linha a meio do ecra
-        # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
-
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                if turn == 'blue':
-                    for piece in blue_pieces:
-                        if piece.is_clicked():
-                            piece.selected = True
-                            nearby_hexagons = getNearbyHexagons(piece)
-                            change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
-                            if change_turn and state == GameState.PLAYING:
-                                checkBlock(piece, red_pieces)
-                                turn = 'red'
-                                print('Changed turn to red')
-                                break
-                            elif state == GameState.BLUE_WON:
-                                print('Blue won')
-                                break
-
-                elif turn == 'red':
-                    for piece in red_pieces:
-                        if piece.is_clicked():
-                            nearby_hexagons = getNearbyHexagons(piece)
-                            change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
-                            if change_turn and state == GameState.PLAYING:
-                                checkBlock(piece, blue_pieces)
-                                turn = 'blue'
-                                print('Changed turn to red')
-                                break
-                            elif state == GameState.RED_WON:
-                                print('Red won')
-                                break
-    else:
-        screen.fill((220,190,131))
+    if state == GameState.MENU:
+        menu()
+    elif state == GameState.PLAYING:
+        play()
+    elif state == GameState.RED_WON or state == GameState.BLUE_WON:
+        winStates()
+    elif state == GameState.QUIT:
+        running = False
+        pygame.quit()
         
-        if state == GameState.RED_WON:
-            drawText(screen, "Red won", 'red', 40, 150, 150)
-        elif state == GameState.BLUE_WON:
-            drawText(screen, "Blue won", 'blue', 40, 150, 150)
-
-
-
-        
-
-
-    
 
     # flip() the display to put your work on screen
     pygame.display.flip()
@@ -322,7 +371,4 @@ while running:
     # dt is delta time in seconds since last frame, used for framerate-
     # independent physics.
     dt = clock.tick(60) / 1000
-
-
-# if state == GameState.QUIT:
-#     pygame.quit()
+    pygame.display.set_caption(f'ABOYNE - {int(clock.get_fps())} FPS')
