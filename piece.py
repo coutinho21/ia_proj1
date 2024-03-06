@@ -22,10 +22,11 @@ class Piece(Object) :
 
     def is_clicked(self):
         pos = pygame.mouse.get_pos()
-    # Calculate the Euclidean distance between the piece's center and the mouse position
+        
+        # Calculate the Euclidean distance between the piece's center and the mouse position
         distance = sqrt((self.position.x - pos[0]) ** 2 + (self.position.y - pos[1]) ** 2)
-    
-    # If the distance is less than the radius, the mouse click is inside the piece
+
+        # If the distance is less than the radius, the mouse click is inside the piece
         return distance <= self.radius
 
 
