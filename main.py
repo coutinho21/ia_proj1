@@ -29,6 +29,7 @@ hexagons = []
 blue_pieces = []
 red_pieces = []
 state = GameState.MENU
+gamegoing = False
 
 
 def initBoard():
@@ -362,16 +363,26 @@ def play():
 
 def winStates():
     global state
+    global gamegoing
+    color = 'red'
+
+    
     screen.fill((220,190,131))
     if state == GameState.RED_WON:
-        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2 -50)
+        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2 - 150)
     elif state == GameState.BLUE_WON:
-        drawText(screen, "Blue won", 'blue', 40, screen.get_width() / 2, screen.get_height() / 2 - 50)
+        color = 'blue'
+        drawText(screen, "Blue won", 'blue', 40, screen.get_width() / 2, screen.get_height() / 2 - 150)
 
-    menuButton = Button((screen.get_width() / 2 - 50, screen.get_height() / 2 - 30), 'green', 'Menu', (100, 60), GameState.MENU)
+    initGame()
+    gamegoing = False
+
+    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), color, 'Menu', (60, 60),GameState.MENU, 32,'hexagon')
+    quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), color, 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
+    playAgainButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), color, 'Replay', (60, 60), GameState.PLAYING, 32, 'hexagon')
     menuButton.draw(screen)
-    quitButton = Button((screen.get_width() / 2 - 50, screen.get_height() / 2 + 70), 'red', 'Quit', (100, 60), GameState.QUIT)
     quitButton.draw(screen)
+    playAgainButton.draw(screen)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Check if the mouse click is within the menu area
@@ -380,14 +391,24 @@ def winStates():
             # Check if the mouse click is within the quit area
             if quitButton.is_clicked():
                 state = quitButton.action
+            if playAgainButton.is_clicked():
+                state = playAgainButton.action
+                initGame()
+                gamegoing = True
+                break
 
 def menu():
     global state
+    global gamegoing
     screen.fill((220,190,131))
     drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
     playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
-    settingsButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Settings', (60, 60), GameState.MENU, 32, 'hexagon')
+    settingsButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Settings', (60, 60), GameState.PLAYING, 32, 'hexagon')
+    if gamegoing == True:
+        resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), GameState.PLAYING, 32, 'hexagon')
+        resumeButton.draw(screen)
+
     playButton.draw(screen)
     quitButton.draw(screen)
     settingsButton.draw(screen)
@@ -397,10 +418,14 @@ def menu():
             if playButton.is_clicked():
                 state = playButton.action
                 initGame()
+                gamegoing = True
 
             # Check if the mouse click is within the quit area
-            if quitButton.is_clicked():
+            elif quitButton.is_clicked():
                 state = quitButton.action
+
+            elif resumeButton.is_clicked():
+                state = resumeButton.action
         
 def cleanGame():
     hexagons.clear()
