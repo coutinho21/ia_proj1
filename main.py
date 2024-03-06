@@ -231,9 +231,7 @@ def checkBlock(piece, other_color_p):
         if hexagon in getNearbyHexagons(p):
             piece.isBlocked = True
             p.isBlocked = True
-            return True
     piece.isBlocked = False
-    return False
     
 def play():
     global turn
@@ -283,7 +281,6 @@ def play():
             elif turn == 'red':
                 for piece in red_pieces:
                     if piece.is_clicked():
-
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
                         if change_turn and state == GameState.PLAYING:
