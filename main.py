@@ -55,7 +55,7 @@ def drawBoard():
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
             text = font.render(str(i+1), 1, (10, 10, 10))
-            hexagons[i].Surface.blit(text, (hexagons[i].position[0] - 27, hexagons[i].position[1] - 27))
+            hexagons[i].Surface.blit(text, (hexagons[i].position.x - 27, hexagons[i].position.y - 27))
 
 
 
@@ -102,27 +102,48 @@ def getNearbyHexagons(piece):
 
 
 def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
-    if piece == None or hexagon == None:
-        return False
-    new_piece = getPieceByPos(hexagon.pos_n)
-    if new_piece == None:
-        return False
-    if new_piece in same_color_p:
+    if hexagon == None:
         return False
     
-    best = 100000
+    if piece == None:
+        if hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
+            return True
+        return False
+    
+    if piece in other_color_p:
+        if hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
+            return True
+        return False
+    
+    goalPiece = getPieceByPos(hexagon.pos_n)
+    if goalPiece in same_color_p:
+        return False
+
     best_hex = None
+    vector = pygame.Vector2(hexagon.position.x - piece.position.x, hexagon.position.y - piece.position.y)
+    vectorDirection = vector.normalize()
+
+    print(f'Vector goal direction is {vectorDirection}')
+
     for hex in getNearbyHexagons(piece):
         if hex == None:
             continue
-        dist = getDistance(hex.position, hexagon.position)
-        if dist <= best:
-            best = dist
-            best_hex = hex
-    
 
-    nearby_goal = getNearbyHexagons(hexagon)
+        vector2 = pygame.Vector2(hex.position.x - piece.position.x, hex.position.y - piece.position.y)
+        vectorDirection2 = vector2.normalize()
+
+        print(f'Vector direction is {vectorDirection2}')
+
+        if vectorDirection2 == vectorDirection:
+            best_hex = hex
+            print(f'Best hexagon is {best_hex.pos_n + 1}')
+            break
+    
+    if best_hex == None:
+        return False
+
     new_near_piece = getPieceByPos(best_hex.pos_n)
+    nearby_goal = getNearbyHexagons(hexagon)
     
     print(f'Best hexagon is {best_hex.pos_n + 1}')
     for hex in nearby_goal:
@@ -164,7 +185,8 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                         if hexagon not in nearby_hexagons:
                             if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
                                 print(f'Jumping piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
-                                other_color_p.remove(getPieceByPos(hexagon.pos_n))
+                                if getPieceByPos(hexagon.pos_n) != None:
+                                    other_color_p.remove(getPieceByPos(hexagon.pos_n))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 checkBlockChange(piece)
                                 return True
