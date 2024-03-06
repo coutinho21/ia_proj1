@@ -55,7 +55,7 @@ def drawBoard():
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
             text = font.render(str(i+1), 1, (10, 10, 10))
-            hexagons[i].Surface.blit(text, (hexagons[i].position[0] - 27, hexagons[i].position[1] - 27))
+            hexagons[i].Surface.blit(text, (hexagons[i].position.x - 27, hexagons[i].position.y - 27))
 
 
 
@@ -102,27 +102,48 @@ def getNearbyHexagons(piece):
 
 
 def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
-    if piece == None or hexagon == None:
-        return False
-    new_piece = getPieceByPos(hexagon.pos_n)
-    if new_piece == None:
-        return False
-    if new_piece in same_color_p:
+    if hexagon == None:
         return False
     
-    best = 100000
+    if piece == None:
+        if hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
+            return True
+        return False
+    
+    if piece in other_color_p:
+        if hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
+            return True
+        return False
+    
+    goalPiece = getPieceByPos(hexagon.pos_n)
+    if goalPiece in same_color_p:
+        return False
+
     best_hex = None
+    vector = pygame.Vector2(hexagon.position.x - piece.position.x, hexagon.position.y - piece.position.y)
+    vectorDirection = vector.normalize()
+
+    print(f'Vector goal direction is {vectorDirection}')
+
     for hex in getNearbyHexagons(piece):
         if hex == None:
             continue
-        dist = getDistance(hex.position, hexagon.position)
-        if dist < best:
-            best = dist
-            best_hex = hex
-    
 
-    nearby_goal = getNearbyHexagons(hexagon)
+        vector2 = pygame.Vector2(hex.position.x - piece.position.x, hex.position.y - piece.position.y)
+        vectorDirection2 = vector2.normalize()
+
+        print(f'Vector direction is {vectorDirection2}')
+
+        if vectorDirection2 == vectorDirection:
+            best_hex = hex
+            print(f'Best hexagon is {best_hex.pos_n + 1}')
+            break
+    
+    if best_hex == None:
+        return False
+
     new_near_piece = getPieceByPos(best_hex.pos_n)
+    nearby_goal = getNearbyHexagons(hexagon)
     
     print(f'Best hexagon is {best_hex.pos_n + 1}')
     for hex in nearby_goal:
@@ -164,7 +185,8 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                         if hexagon not in nearby_hexagons:
                             if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
                                 print(f'Jumping piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
-                                other_color_p.remove(getPieceByPos(hexagon.pos_n))
+                                if getPieceByPos(hexagon.pos_n) != None:
+                                    other_color_p.remove(getPieceByPos(hexagon.pos_n))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 checkBlockChange(piece)
                                 return True
@@ -226,15 +248,25 @@ def getPieceByPos(pos):
 
 
 def checkBlock(piece, other_color_p):
+    flag = False
     for p in other_color_p:
         hexagon = getHexagonByPos(piece.pos_n)
         if hexagon in getNearbyHexagons(p):
             piece.isBlocked = True
             p.isBlocked = True
-            return True
-    piece.isBlocked = False
-    return False
+            flag = True
+
+    if not flag:
+        piece.isBlocked = False
     
+
+def checkIfWon(pieces):
+    for piece in pieces:
+        if not piece.isBlocked:
+            return False
+    return True
+
+
 def play():
     global turn
     global running
@@ -254,7 +286,14 @@ def play():
         drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
     else:
         drawText(screen, "Red's turn", 'red', 40, 150, 100)
+        
+    if checkIfWon(blue_pieces):
+            state = GameState.RED_WON
+            return
 
+    if checkIfWon(red_pieces):
+            state = GameState.BLUE_WON
+            return
 
     # linha a meio do ecra
     # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
@@ -281,9 +320,11 @@ def play():
                             break
 
             elif turn == 'red':
+                if checkIfWon(red_pieces):
+                    state = GameState.BLUE_WON
+                    return
                 for piece in red_pieces:
                     if piece.is_clicked():
-
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
                         if change_turn and state == GameState.PLAYING:
@@ -294,8 +335,6 @@ def play():
                         elif state == GameState.RED_WON:
                             print('Red won')
                             break
-
-
 
 
 
@@ -335,22 +374,39 @@ def menu():
             # Check if the mouse click is within the play area
             if playButton.is_clicked():
                 state = playButton.action
+                initGame()
+
             # Check if the mouse click is within the quit area
             if quitButton.is_clicked():
                 state = quitButton.action
+        
+def cleanGame():
+    hexagons.clear()
+    blue_pieces.clear()
+    red_pieces.clear()
+
+
+def initGame():
+    cleanGame()
+    initBoard()
+    piecesInit()
+    random.seed()
+    global turn
+
+    if random.randint(0, 1) == 0:
+        turn = 'red'
+    else:
+        turn = 'blue'
+
+
+
+
 
 ##
 ##    MAIN LOOP
-##           
-
-initBoard()
-piecesInit()
-random.seed()
-
-if random.randint(0, 1) == 0:
-    turn = 'red'
-else:
-    turn = 'blue'
+##   
+        
+initGame()
 
 while running:
     if state == GameState.MENU:
