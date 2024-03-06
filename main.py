@@ -189,6 +189,20 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                     other_color_p.remove(getPieceByPos(hexagon.pos_n))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 checkBlockChange(piece)
+                                if hexagon.base == other_color_p[0].color :
+                                    print('That is not your base')
+                                    return False
+                                elif hexagon.base == piece.color:
+                                    if piece.color == 'red':
+                                        print('You win')
+                                        state = GameState.RED_WON
+                                    elif piece.color == 'blue':
+                                        print('You win')
+                                        state = GameState.BLUE_WON
+                                    
+                                    Piece.move(piece, hexagon.pos_n, hexagon.position)
+                                    return True
+                                
                                 return True
                             else:
                                 print('Cannot make that move')
@@ -204,10 +218,10 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                             if p.pos_n == hexagon.pos_n:
                                 print('There is already a piece in that position')
                                 return False
-                            if hexagon.base == other_color_p[0].color :
+                            elif hexagon.base == other_color_p[0].color :
                                 print('That is not your base')
                                 return False
-                            if hexagon.base == piece.color:
+                            elif hexagon.base == piece.color:
                                 if piece.color == 'red':
                                     print('You win')
                                     state = GameState.RED_WON
@@ -342,7 +356,7 @@ def winStates():
     global state
     screen.fill((220,190,131))
     if state == GameState.RED_WON:
-        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2)
+        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2 -50)
     elif state == GameState.BLUE_WON:
         drawText(screen, "Blue won", 'blue', 40, screen.get_width() / 2, screen.get_height() / 2 - 50)
 
