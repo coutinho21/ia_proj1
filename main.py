@@ -156,7 +156,7 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
             return True
         else:
             return False
-    
+
     return checkIfCanJumpOver(new_near_piece, hexagon, same_color_p, other_color_p)
 
 
@@ -307,9 +307,13 @@ def play():
                 break
             if turn == 'blue':
                 for piece in blue_pieces:
-                    if piece.is_clicked():
+                    if piece.is_clicked() and not piece.isBlocked:
+                        pygame.draw.circle(screen, 'blue', piece.position, 30)
+                        pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
+                        pygame.draw.circle(screen, (220,190,131), piece.position, 30)
+                        pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, red_pieces)
                             turn = 'red'
@@ -324,9 +328,13 @@ def play():
                     state = GameState.BLUE_WON
                     return
                 for piece in red_pieces:
-                    if piece.is_clicked():
+                    if piece.is_clicked() and not piece.isBlocked:
+                        pygame.draw.circle(screen, 'red', piece.position, 30)
+                        pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
+                        pygame.draw.circle(screen, (220,190,131), piece.position, 30)
+                        pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, blue_pieces)
                             turn = 'blue'
