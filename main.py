@@ -116,7 +116,7 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
         if hex == None:
             continue
         dist = getDistance(hex.position, hexagon.position)
-        if dist < best:
+        if dist <= best:
             best = dist
             best_hex = hex
     
@@ -226,13 +226,25 @@ def getPieceByPos(pos):
 
 
 def checkBlock(piece, other_color_p):
+    flag = False
     for p in other_color_p:
         hexagon = getHexagonByPos(piece.pos_n)
         if hexagon in getNearbyHexagons(p):
             piece.isBlocked = True
             p.isBlocked = True
-    piece.isBlocked = False
+            flag = True
+
+    if not flag:
+        piece.isBlocked = False
     
+
+def checkIfWon(pieces):
+    for piece in pieces:
+        if not piece.isBlocked:
+            return False
+    return True
+
+
 def play():
     global turn
     global running
@@ -252,7 +264,14 @@ def play():
         drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
     else:
         drawText(screen, "Red's turn", 'red', 40, 150, 100)
+        
+    if checkIfWon(blue_pieces):
+            state = GameState.RED_WON
+            return
 
+    if checkIfWon(red_pieces):
+            state = GameState.BLUE_WON
+            return
 
     # linha a meio do ecra
     # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
@@ -279,6 +298,9 @@ def play():
                             break
 
             elif turn == 'red':
+                if checkIfWon(red_pieces):
+                    state = GameState.BLUE_WON
+                    return
                 for piece in red_pieces:
                     if piece.is_clicked():
                         nearby_hexagons = getNearbyHexagons(piece)
@@ -291,8 +313,6 @@ def play():
                         elif state == GameState.RED_WON:
                             print('Red won')
                             break
-
-
 
 
 
@@ -332,22 +352,39 @@ def menu():
             # Check if the mouse click is within the play area
             if playButton.is_clicked():
                 state = playButton.action
+                initGame()
+
             # Check if the mouse click is within the quit area
             if quitButton.is_clicked():
                 state = quitButton.action
+        
+def cleanGame():
+    hexagons.clear()
+    blue_pieces.clear()
+    red_pieces.clear()
+
+
+def initGame():
+    cleanGame()
+    initBoard()
+    piecesInit()
+    random.seed()
+    global turn
+
+    if random.randint(0, 1) == 0:
+        turn = 'red'
+    else:
+        turn = 'blue'
+
+
+
+
 
 ##
 ##    MAIN LOOP
-##           
-
-initBoard()
-piecesInit()
-random.seed()
-
-if random.randint(0, 1) == 0:
-    turn = 'red'
-else:
-    turn = 'blue'
+##   
+        
+initGame()
 
 while running:
     if state == GameState.MENU:
