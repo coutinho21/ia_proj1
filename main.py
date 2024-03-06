@@ -291,7 +291,7 @@ def play():
     global state
     
 
-    menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.RED_WON)
+    menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.MENU)
     
 
     screen.fill((220,190,131))
