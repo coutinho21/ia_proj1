@@ -14,6 +14,9 @@ running = True
 dt = 0
 pi2 = 2 * 3.14
 
+blue_color = (37,29,169)
+red_color = (230,0,0)
+
 #   GOAL CELL - The marked cell on the opposite side of the board.
 # 	BLOCKED STONE - A stone adjacent to an enemy stone.
 # 	TURN - At each turn, each player must move one of his non-blocked stones:
@@ -50,9 +53,9 @@ def initBoard():
 def drawBoard():
         for i in range(len(hexagons)):
             if(i == 26) : 
-                hexagons[i].base = 'red'
+                hexagons[i].base = red_color
             if(i == 34) :
-                hexagons[i].base = 'blue'
+                hexagons[i].base = blue_color
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
             text = font.render(str(i+1), 1, (10, 10, 10))
@@ -68,18 +71,18 @@ def piecesInit():
     j2 = 42
     k2 = 8
     while i1 < 19 and j1 < 26:
-        blue_pieces.append(Piece(hexagons[i1].position, 'blue', i1))
-        red_pieces.append(Piece(hexagons[j1].position, 'red', j1))
+        blue_pieces.append(Piece(hexagons[i1].position, blue_color, i1))
+        red_pieces.append(Piece(hexagons[j1].position, red_color, j1))
         i1 += k1
         j1 += k1 + 1
         k1 += 1
 
-    blue_pieces.append(Piece(hexagons[27].position, 'blue',27))
-    red_pieces.append(Piece(hexagons[33].position, 'red',33))
+    blue_pieces.append(Piece(hexagons[27].position, blue_color,27))
+    red_pieces.append(Piece(hexagons[33].position, red_color,33))
 
     while i2 < 57 and j2 < 61:
-        blue_pieces.append(Piece(hexagons[i2].position, 'blue', i2))
-        red_pieces.append(Piece(hexagons[j2].position, 'red', j2))
+        blue_pieces.append(Piece(hexagons[i2].position, blue_color, i2))
+        red_pieces.append(Piece(hexagons[j2].position, red_color, j2))
         i2 += k2
         j2 += k2 - 1
         k2 -= 1
@@ -166,7 +169,7 @@ def checkBlockChange(piece):
     for hex in hexagons:
         piece = getPieceByPos(hex.pos_n)
         if piece != None:
-            if piece.color == 'red':
+            if piece.color == red_color:
                 checkBlock(piece, blue_pieces)
             else:
                 checkBlock(piece, red_pieces)
@@ -194,10 +197,10 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                     print('That is not your base')
                                     return False
                                 elif hexagon.base == piece.color:
-                                    if piece.color == 'red':
+                                    if piece.color == red_color:
                                         print('You win')
                                         state = GameState.RED_WON
-                                    elif piece.color == 'blue':
+                                    elif piece.color == blue_color:
                                         print('You win')
                                         state = GameState.BLUE_WON
                                     
@@ -223,10 +226,10 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                 print('That is not your base')
                                 return False
                             elif hexagon.base == piece.color:
-                                if piece.color == 'red':
+                                if piece.color == red_color:
                                     print('You win')
                                     state = GameState.RED_WON
-                                elif piece.color == 'blue':
+                                elif piece.color == blue_color:
                                     print('You win')
                                     state = GameState.BLUE_WON
                                 
@@ -288,7 +291,7 @@ def play():
     global state
     
 
-    menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.MENU)
+    menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.RED_WON)
     
 
     screen.fill((220,190,131))
@@ -297,10 +300,10 @@ def play():
     menuButton.draw(screen)
 
 
-    if turn == 'blue':
-        drawText(screen, "Blue's turn", 'blue', 40, 150, 100)
+    if turn == blue_color:
+        drawText(screen, "Blue's turn", blue_color, 40, 150, 100)
     else:
-        drawText(screen, "Red's turn", 'red', 40, 150, 100)
+        drawText(screen, "Red's turn", red_color, 40, 150, 100)
         
     if checkIfWon(blue_pieces):
             state = GameState.RED_WON
@@ -320,10 +323,10 @@ def play():
             if menuButton.is_clicked():
                 state = menuButton.action
                 break
-            if turn == 'blue':
+            if turn == blue_color:
                 for piece in blue_pieces:
                     if piece.is_clicked() and not piece.isBlocked:
-                        pygame.draw.circle(screen, 'blue', piece.position, 30)
+                        pygame.draw.circle(screen, blue_color, piece.position, 30)
                         pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
@@ -331,20 +334,20 @@ def play():
                         pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, red_pieces)
-                            turn = 'red'
+                            turn = red_color
                             print('Changed turn to red')
                             break
                         elif state == GameState.BLUE_WON:
                             print('Blue won')
                             break
 
-            elif turn == 'red':
+            elif turn == red_color:
                 if checkIfWon(red_pieces):
                     state = GameState.BLUE_WON
                     return
                 for piece in red_pieces:
                     if piece.is_clicked() and not piece.isBlocked:
-                        pygame.draw.circle(screen, 'red', piece.position, 30)
+                        pygame.draw.circle(screen, red_color, piece.position, 30)
                         pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
@@ -352,7 +355,7 @@ def play():
                         pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, blue_pieces)
-                            turn = 'blue'
+                            turn = blue_color
                             print('Changed turn to red')
                             break
                         elif state == GameState.RED_WON:
@@ -364,15 +367,15 @@ def play():
 def winStates():
     global state
     global gamegoing
-    color = 'red'
+    color = red_color
 
-    
-    screen.fill((220,190,131))
+
+    pygame.draw.rect(screen, (220,190,131), (0,0,300,200))
     if state == GameState.RED_WON:
-        drawText(screen, "Red won", 'red', 40, screen.get_width() / 2, screen.get_height() / 2 - 150)
+        drawText(screen, "Red won", (184,20,20), 80, screen.get_width() / 2, screen.get_height() / 2 - 200)
     elif state == GameState.BLUE_WON:
-        color = 'blue'
-        drawText(screen, "Blue won", 'blue', 40, screen.get_width() / 2, screen.get_height() / 2 - 150)
+        color = blue_color
+        drawText(screen, "Blue won", (11,11,100), 80, screen.get_width() / 2, screen.get_height() / 2 - 200)
 
     initGame()
     gamegoing = False
@@ -463,9 +466,9 @@ def initGame():
     global turn
 
     if random.randint(0, 1) == 0:
-        turn = 'red'
+        turn = red_color
     else:
-        turn = 'blue'
+        turn = blue_color
 
 
 

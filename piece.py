@@ -17,7 +17,7 @@ class Piece(Object) :
     def draw(self, screen):
         pygame.draw.circle(screen, self.color, self.position, self.radius)
         if self.isBlocked:
-            drawText(screen, 'Blocked', (0, 0, 0), 14, self.position[0], self.position[1])
+            drawText(screen, 'Blocked', (255, 255, 255), 14, self.position[0], self.position[1])
 
 
     def is_clicked(self):
