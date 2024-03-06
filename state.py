@@ -6,3 +6,4 @@ class GameState(Enum):
         RED_WON = 2
         BLUE_WON = 3
         QUIT = 4
+        RULES = 5

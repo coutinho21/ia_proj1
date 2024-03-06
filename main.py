@@ -404,28 +404,50 @@ def menu():
     drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
     playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
-    settingsButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Settings', (60, 60), GameState.PLAYING, 32, 'hexagon')
+    rulesButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Rules', (60, 60), GameState.RULES, 32, 'hexagon')
     if gamegoing == True:
         resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), GameState.PLAYING, 32, 'hexagon')
         resumeButton.draw(screen)
 
     playButton.draw(screen)
     quitButton.draw(screen)
-    settingsButton.draw(screen)
+    rulesButton.draw(screen)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
-            # Check if the mouse click is within the play area
             if playButton.is_clicked():
                 state = playButton.action
                 initGame()
                 gamegoing = True
 
-            # Check if the mouse click is within the quit area
             elif quitButton.is_clicked():
                 state = quitButton.action
 
+            elif rulesButton.is_clicked():
+                state = rulesButton.action
+
             elif resumeButton.is_clicked():
                 state = resumeButton.action
+
+def rules():
+    global state
+    screen.fill((220,190,131))
+    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
+    drawText(screen, "Rules", 'black', 40, screen.get_width() / 2, 250)
+    drawText(screen, "GOAL CELL - The marked cell on the opposite side of the board.", 'black', 30, screen.get_width() / 2, 300)
+    drawText(screen, "BLOCKED STONE - A stone adjacent to an enemy stone.", 'black', 30, screen.get_width() / 2, 330)
+    drawText(screen, "TURN - At each turn, each player must move one of his non-blocked stones:", 'black', 30, screen.get_width() / 2, 360)
+    drawText(screen, "A stone may move to an adjacent empty cell or jump over a line of friendly stones landing on the immediate next cell.", 'black', 30, screen.get_width() / 2, 390)
+    drawText(screen, "If that cell is occupied by an enemy stone, that stone is captured.", 'black', 30, screen.get_width() / 2, 415)
+    drawText(screen, "A stone cannot move into the opponent's goal cell.", 'black', 30, screen.get_width() / 2, 440)
+    drawText(screen, "GOAL - Wins the player that moves a stone into his own goal cell or stalemates the opponent.", 'black', 30, screen.get_width() / 2, 470)
+    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 + 220), (192,157,89), 'Menu', (60, 60),GameState.MENU, 32,'hexagon')
+    menuButton.draw(screen)
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if menuButton.is_clicked():
+                state = menuButton.action
+                break
+
         
 def cleanGame():
     hexagons.clear()
@@ -462,6 +484,8 @@ while running:
         play()
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
         winStates()
+    elif state == GameState.RULES:
+        rules()
     elif state == GameState.QUIT:
         running = False
         pygame.quit()
