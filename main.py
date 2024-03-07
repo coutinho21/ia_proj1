@@ -330,8 +330,6 @@ def play():
                         pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
-                        pygame.draw.circle(screen, (220,190,131), piece.position, 30)
-                        pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, red_pieces)
                             turn = red_color
@@ -340,6 +338,7 @@ def play():
                         elif state == GameState.BLUE_WON:
                             print('Blue won')
                             break
+
 
             elif turn == red_color:
                 if checkIfWon(red_pieces):
@@ -351,8 +350,6 @@ def play():
                         pygame.display.flip()
                         nearby_hexagons = getNearbyHexagons(piece)
                         change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
-                        pygame.draw.circle(screen, (220,190,131), piece.position, 30)
-                        pygame.display.flip()
                         if change_turn and state == GameState.PLAYING:
                             checkBlock(piece, blue_pieces)
                             turn = blue_color
@@ -367,11 +364,12 @@ def play():
 def winStates():
     global state
     global gamegoing
-    color = red_color
+    
 
 
     pygame.draw.rect(screen, (220,190,131), (0,0,300,200))
     if state == GameState.RED_WON:
+        color = red_color
         drawText(screen, "Red won", (184,20,20), 80, screen.get_width() / 2, screen.get_height() / 2 - 200)
     elif state == GameState.BLUE_WON:
         color = blue_color
