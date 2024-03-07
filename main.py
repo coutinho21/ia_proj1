@@ -110,7 +110,9 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
         return False
     
     if piece == None:
-        if hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
+        if hexagon == None or piece == None:
+            return False
+        elif hexagon.position.x == piece.position.x and hexagon.position.y == piece.position.y:
             return True
         return False
     
