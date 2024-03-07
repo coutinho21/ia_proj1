@@ -334,11 +334,10 @@ def play():
                             checkBlock(piece, red_pieces)
                             turn = red_color
                             print('Changed turn to red')
-                            break
                         elif state == GameState.BLUE_WON:
                             print('Blue won')
-                            break
-
+                        
+                        break
 
             elif turn == red_color:
                 if checkIfWon(red_pieces):
@@ -354,10 +353,10 @@ def play():
                             checkBlock(piece, blue_pieces)
                             turn = blue_color
                             print('Changed turn to red')
-                            break
                         elif state == GameState.RED_WON:
                             print('Red won')
-                            break
+                        
+                        break
 
 
 
