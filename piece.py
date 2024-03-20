@@ -12,6 +12,7 @@ class Piece(Object) :
         self.pos_n = pos_n
         self.selected = selected
         self.isBlocked = isBlocked
+        self.score = 0
 
 
     def draw(self, screen):

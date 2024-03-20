@@ -31,6 +31,8 @@ height = 2 * radius
 hexagons = []
 blue_pieces = []
 red_pieces = []
+blue_score = 0
+red_score = 0
 state = GameState.MENU
 gamegoing = False
 
@@ -287,10 +289,12 @@ def checkIfWon(pieces):
     return True
 
 
-def play():
+def play(ai):
     global turn
     global running
     global state
+    global blue_pieces
+    global red_pieces
     
 
     menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.MENU)
@@ -317,48 +321,67 @@ def play():
 
     # linha a meio do ecra
     # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+    print(f'Turn is {turn}')
+    print(f'AI is {ai}')
+    if turn != ai:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if menuButton.is_clicked():
+                    state = menuButton.action
+                    break
+                if turn == blue_color:
+                    for piece in blue_pieces:
+                        if piece.is_clicked() and not piece.isBlocked:
+                            pygame.draw.circle(screen, blue_color, piece.position, 30)
+                            pygame.display.flip()
+                            nearby_hexagons = getNearbyHexagons(piece)
+                            change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
+                            if change_turn and state == GameState.PvsAI:
+                                checkBlock(piece, red_pieces)
+                                turn = red_color
+                                print('Changed turn to red')
+                            elif state == GameState.BLUE_WON:
+                                print('Blue won')
+                            
+                            break
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            if menuButton.is_clicked():
-                state = menuButton.action
-                break
-            if turn == blue_color:
-                for piece in blue_pieces:
-                    if piece.is_clicked() and not piece.isBlocked:
-                        pygame.draw.circle(screen, blue_color, piece.position, 30)
-                        pygame.display.flip()
-                        nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
-                        if change_turn and state == GameState.PLAYING:
-                            checkBlock(piece, red_pieces)
-                            turn = red_color
-                            print('Changed turn to red')
-                        elif state == GameState.BLUE_WON:
-                            print('Blue won')
-                        
-                        break
+                elif turn == red_color:
+                    if checkIfWon(red_pieces):
+                        state = GameState.BLUE_WON
+                        return
+                    for piece in red_pieces:
+                        if piece.is_clicked() and not piece.isBlocked:
+                            pygame.draw.circle(screen, red_color, piece.position, 30)
+                            pygame.display.flip()
+                            nearby_hexagons = getNearbyHexagons(piece)
+                            change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
+                            if change_turn and state == GameState.PvsAI:
+                                checkBlock(piece, blue_pieces)
+                                turn = blue_color
+                                print('Changed turn to red')
+                            elif state == GameState.RED_WON:
+                                print('Red won')
+                            
+                            break
 
-            elif turn == red_color:
-                if checkIfWon(red_pieces):
-                    state = GameState.BLUE_WON
-                    return
-                for piece in red_pieces:
-                    if piece.is_clicked() and not piece.isBlocked:
-                        pygame.draw.circle(screen, red_color, piece.position, 30)
-                        pygame.display.flip()
-                        nearby_hexagons = getNearbyHexagons(piece)
-                        change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
-                        if change_turn and state == GameState.PLAYING:
-                            checkBlock(piece, blue_pieces)
-                            turn = blue_color
-                            print('Changed turn to red')
-                        elif state == GameState.RED_WON:
-                            print('Red won')
-                        
-                        break
+    elif turn == ai: 
+        all_pieces = storeState()
+        bestScore = minimax(3, True)
+        print(f'Best score is 1')
+        blue_pieces = all_pieces[0]
+        red_pieces = all_pieces[1]
+                
+                
+
+
+
+  
+
+
+
+
 
 
 
@@ -381,7 +404,7 @@ def winStates():
 
     menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), color, 'Menu', (60, 60),GameState.MENU, 32,'hexagon')
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), color, 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
-    playAgainButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), color, 'Replay', (60, 60), GameState.PLAYING, 32, 'hexagon')
+    playAgainButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), color, 'Replay', (60, 60), GameState.PvsAI, 32, 'hexagon')
     menuButton.draw(screen)
     quitButton.draw(screen)
     playAgainButton.draw(screen)
@@ -404,11 +427,11 @@ def menu():
     global gamegoing
     screen.fill((220,190,131))
     drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
-    playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'Play', (60, 60),GameState.PLAYING, 32,'hexagon')
+    playButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'Play', (60, 60),GameState.PvsAI, 32,'hexagon')
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
     rulesButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Rules', (60, 60), GameState.RULES, 32, 'hexagon')
     if gamegoing == True:
-        resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), GameState.PLAYING, 32, 'hexagon')
+        resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), GameState.PvsAI, 32, 'hexagon')
         resumeButton.draw(screen)
 
     playButton.draw(screen)
@@ -450,6 +473,75 @@ def rules():
                 state = menuButton.action
                 break
 
+
+
+def evaluateGame():
+    all_pieces = blue_pieces + red_pieces
+    for piece in all_pieces:
+        if not piece.isBlocked:
+            piece.score = 3
+        else:
+            piece.score = 1
+
+def getTeamScore(pieces):
+    score = 0
+    for piece in pieces:
+        score += piece.score
+    return score
+
+def storeState():
+    blue_pieces_copy = []
+    red_pieces_copy = []
+    for piece in blue_pieces:
+        blue_pieces_copy.append(Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked))
+    for piece in red_pieces:
+        red_pieces_copy.append(Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked))
+    return blue_pieces_copy, red_pieces_copy
+
+def minimax(depth, isMax):
+    evaluateGame()
+    if depth == 0:
+        return getTeamScore(blue_pieces) - getTeamScore(red_pieces)
+
+    if isMax:
+        bestVal = -1000
+        for piece in blue_pieces:
+            if not piece.isBlocked:
+                nearby_hexagons = getNearbyHexagons(piece)
+                for hexagon in nearby_hexagons:
+                    if hexagon.base == red_color:
+                        continue
+                    if hexagon.base == blue_color:
+                        continue
+                    if getPieceByPos(hexagon.pos_n) != None:
+                        red_pieces.remove(getPieceByPos(hexagon.pos_n))
+                    Piece.move(piece, hexagon.pos_n, hexagon.position)
+                    checkBlockChange(piece)
+                    value = minimax(depth - 1, False)
+                    bestVal = max(bestVal, value)
+                    Piece.move(piece, piece.pos_n, piece.position)
+                    red_pieces.append(getPieceByPos(hexagon.pos_n))
+        return bestVal
+    else:
+        bestVal = 1000
+        for piece in red_pieces:
+            if not piece.isBlocked:
+                nearby_hexagons = getNearbyHexagons(piece)
+                for hexagon in nearby_hexagons:
+                    if hexagon.base == blue_color:
+                        continue
+                    if hexagon.base == red_color:
+                        continue
+                    if getPieceByPos(hexagon.pos_n) != None:
+                        blue_pieces.remove(getPieceByPos(hexagon.pos_n))
+                    Piece.move(piece, hexagon.pos_n, hexagon.position)
+                    checkBlockChange(piece)
+                    value = minimax(depth - 1, True)
+                    bestVal = min(bestVal, value)
+                    Piece.move(piece, piece.pos_n, piece.position)
+                    blue_pieces.append(getPieceByPos(hexagon.pos_n))
+        return bestVal
+
         
 def cleanGame():
     hexagons.clear()
@@ -461,14 +553,22 @@ def initGame():
     cleanGame()
     initBoard()
     piecesInit()
+
     random.seed()
     global turn
-
     if random.randint(0, 1) == 0:
         turn = red_color
     else:
         turn = blue_color
 
+
+
+
+def randomizeAI():
+    if random.randint(0, 1) == 0:
+        return red_color
+    return blue_color
+    
 
 
 
@@ -478,12 +578,18 @@ def initGame():
 ##   
         
 initGame()
+ai = randomizeAI()
 
 while running:
     if state == GameState.MENU:
         menu()
-    elif state == GameState.PLAYING:
-        play()
+
+    elif state == GameState.PvsP:
+        play(None)
+    elif state == GameState.PvsAI:
+        #escolher cor e dificuldade
+        #PvsAI_play(player_color, difficulty)
+        play(ai)
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
         winStates()
     elif state == GameState.RULES:
