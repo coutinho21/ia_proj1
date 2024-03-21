@@ -129,9 +129,10 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
 
     best_hex = None
     vector = pygame.Vector2(hexagon.position.x - piece.position.x, hexagon.position.y - piece.position.y)
+    if vector.length() == 0:
+        return False
     vectorDirection = vector.normalize()
 
-    print(f'Vector goal direction is {vectorDirection}')
 
     for hex in getNearbyHexagons(piece):
         if hex == None:
@@ -140,11 +141,9 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
         vector2 = pygame.Vector2(hex.position.x - piece.position.x, hex.position.y - piece.position.y)
         vectorDirection2 = vector2.normalize()
 
-        print(f'Vector direction is {vectorDirection2}')
 
         if vectorDirection2 == vectorDirection:
             best_hex = hex
-            print(f'Best hexagon is {best_hex.pos_n + 1}')
             break
     
     if best_hex == None:
@@ -153,14 +152,9 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
     new_near_piece = getPieceByPos(best_hex.pos_n)
     nearby_goal = getNearbyHexagons(hexagon)
     
-    print(f'Best hexagon is {best_hex.pos_n + 1}')
-    for hex in nearby_goal:
-        print(f'Near goal hexagons are {hex.pos_n + 1}')
-    
+
     if best_hex in nearby_goal:
-        print('is near')
         if new_near_piece in same_color_p:
-            print('is same color')
             return True
         else:
             return False
@@ -253,6 +247,11 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                 break
 
 
+
+
+
+
+
 def getHexagonByPos(pos):
         for hexagon in hexagons:
             if hexagon.pos_n == pos:
@@ -321,8 +320,6 @@ def play(ai):
 
     # linha a meio do ecra
     # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
-    print(f'Turn is {turn}')
-    print(f'AI is {ai}')
     if turn != ai:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -360,24 +357,78 @@ def play(ai):
                             if change_turn and state == GameState.PvsAI:
                                 checkBlock(piece, blue_pieces)
                                 turn = blue_color
-                                print('Changed turn to red')
+                                print('Changed turn to blue')
                             elif state == GameState.RED_WON:
                                 print('Red won')
                             
                             break
 
     elif turn == ai: 
-        all_pieces = storeState()
-        bestScore = minimax(3, True)
-        print(f'Best score is 1')
-        blue_pieces = all_pieces[0]
-        red_pieces = all_pieces[1]
+        pieces_state = copyState()
+        blue_pieces_copy = pieces_state[0]
+        red_pieces_copy = pieces_state[1]
+        if ai == blue_color:
+            best_move = None
+            best_score = -1000
+            moves = getAllPossibleMoves(blue_color)
+            for move in moves:
+                piece = move[1]
+                hexagon = move[0]
+                Piece.move(piece, hexagon.pos_n, hexagon.position)
+                checkBlockChange(piece)
+                evaluateGame()
+                score = getTeamScore(blue_pieces) - getTeamScore(red_pieces)
+                if score > best_score:
+                    best_score = score
+                    best_move = move
                 
+                blue_pieces = blue_pieces_copy
+                red_pieces = red_pieces_copy
+            piece_to_move = best_move[1]
+            for p in blue_pieces:
+                print(p.pos_n, piece_to_move.pos_n)
+            hexagon_to_move = best_move[0]
+            Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
+            checkBlockChange(piece_to_move)
+            if hexagon_to_move.base == blue_color:
+                state = GameState.BLUE_WON
+
+            turn = red_color 
+            print('Changed turn to red - ended AI turn')
+            
+
+        else:
+            best_move = None
+            best_score = -1000
+            moves = getAllPossibleMoves(red_color)
+            for move in moves:
+                piece = move[1]
+                hexagon = move[0]
+                Piece.move(piece, hexagon.pos_n, hexagon.position)
+                checkBlockChange(piece)
+                evaluateGame()
+                score = getTeamScore(red_pieces) - getTeamScore(blue_pieces)
+                if score > best_score:
+                    best_score = score
+                    best_move = move
                 
+                blue_pieces = blue_pieces_copy
+                red_pieces = red_pieces_copy
+            piece_to_move = best_move[1]
+            hexagon_to_move = best_move[0]
+            for p in red_pieces:
+                print(p.pos_n, piece_to_move.pos_n)
+            Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
+            checkBlockChange(piece_to_move)
+            if hexagon_to_move.base == red_color:
+                state = GameState.RED_WON
+
+            turn = blue_color
+            print('Changed turn to blue - ended AI turn')
+             
 
 
 
-  
 
 
 
@@ -489,7 +540,7 @@ def getTeamScore(pieces):
         score += piece.score
     return score
 
-def storeState():
+def copyState():
     blue_pieces_copy = []
     red_pieces_copy = []
     for piece in blue_pieces:
@@ -498,49 +549,40 @@ def storeState():
         red_pieces_copy.append(Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked))
     return blue_pieces_copy, red_pieces_copy
 
-def minimax(depth, isMax):
-    evaluateGame()
-    if depth == 0:
-        return getTeamScore(blue_pieces) - getTeamScore(red_pieces)
+def getAllPossibleMoves(color):
+    possible_moves = []
 
-    if isMax:
-        bestVal = -1000
-        for piece in blue_pieces:
-            if not piece.isBlocked:
-                nearby_hexagons = getNearbyHexagons(piece)
-                for hexagon in nearby_hexagons:
-                    if hexagon.base == red_color:
-                        continue
-                    if hexagon.base == blue_color:
-                        continue
-                    if getPieceByPos(hexagon.pos_n) != None:
-                        red_pieces.remove(getPieceByPos(hexagon.pos_n))
-                    Piece.move(piece, hexagon.pos_n, hexagon.position)
-                    checkBlockChange(piece)
-                    value = minimax(depth - 1, False)
-                    bestVal = max(bestVal, value)
-                    Piece.move(piece, piece.pos_n, piece.position)
-                    red_pieces.append(getPieceByPos(hexagon.pos_n))
-        return bestVal
+    if color == blue_color:
+        same_color_p = blue_pieces
+        other_color_p = red_pieces
     else:
-        bestVal = 1000
-        for piece in red_pieces:
+        same_color_p = red_pieces
+        other_color_p = blue_pieces
+
+    for piece in same_color_p:
+
+        nearby_hexagons = getNearbyHexagons(piece)
+        for hexagon in nearby_hexagons:
             if not piece.isBlocked:
-                nearby_hexagons = getNearbyHexagons(piece)
-                for hexagon in nearby_hexagons:
-                    if hexagon.base == blue_color:
-                        continue
-                    if hexagon.base == red_color:
-                        continue
-                    if getPieceByPos(hexagon.pos_n) != None:
-                        blue_pieces.remove(getPieceByPos(hexagon.pos_n))
-                    Piece.move(piece, hexagon.pos_n, hexagon.position)
-                    checkBlockChange(piece)
-                    value = minimax(depth - 1, True)
-                    bestVal = min(bestVal, value)
-                    Piece.move(piece, piece.pos_n, piece.position)
-                    blue_pieces.append(getPieceByPos(hexagon.pos_n))
-        return bestVal
+                occupied = False
+                for p in same_color_p:
+                    if p.pos_n == hexagon.pos_n:
+                        occupied = True
+                        break
+                for p in other_color_p:
+                    if p.pos_n == hexagon.pos_n:
+                        occupied = True
+                        break
+                if not occupied:
+                    possible_moves.append((hexagon, piece))
+                    print(f'Adding move from {piece.pos_n } to {hexagon.pos_n }')
+        for hexagon in hexagons:
+            if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
+                possible_moves.append((hexagon,piece))
+
+    return possible_moves
+
+             
 
         
 def cleanGame():
