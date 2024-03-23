@@ -384,6 +384,8 @@ def play(ai):
                 
                 blue_pieces = blue_pieces_copy
                 red_pieces = red_pieces_copy
+                
+
             piece_to_move = best_move[1]
             for p in blue_pieces:
                 print(p.pos_n, piece_to_move.pos_n)
@@ -400,6 +402,8 @@ def play(ai):
         else:
             best_move = None
             best_score = -1000
+            piece_to_move = None
+            hexagon_to_move = None
             moves = getAllPossibleMoves(red_color)
             for move in moves:
                 piece = move[1]
@@ -409,16 +413,26 @@ def play(ai):
                 evaluateGame()
                 score = getTeamScore(red_pieces) - getTeamScore(blue_pieces)
                 if score > best_score:
+                    print("changed")
                     best_score = score
                     best_move = move
+                    piece_to_move = best_move[1]
+                    print(piece_to_move.pos_n)
+                    hexagon_to_move = best_move[0]
                 
                 blue_pieces = blue_pieces_copy
                 red_pieces = red_pieces_copy
-            piece_to_move = best_move[1]
-            hexagon_to_move = best_move[0]
-            for p in red_pieces:
-                print(p.pos_n, piece_to_move.pos_n)
+                
+
+
+            for p in red_pieces_copy:
+                print(p.pos_n, piece_to_move.pos_n, p.pos_n == piece_to_move.pos_n)
+                if p.pos_n == piece_to_move.pos_n:
+                    print('Found piece')
+                    piece_to_move = p
+
             Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
+            print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
             checkBlockChange(piece_to_move)
             if hexagon_to_move.base == red_color:
                 state = GameState.RED_WON
@@ -574,8 +588,10 @@ def getAllPossibleMoves(color):
                         occupied = True
                         break
                 if not occupied:
+                    if hexagon.base == other_color_p[0].color:
+                        break
                     possible_moves.append((hexagon, piece))
-                    print(f'Adding move from {piece.pos_n } to {hexagon.pos_n }')
+                    print(f'Adding move from {piece.pos_n } to {hexagon.pos_n  }')
         for hexagon in hexagons:
             if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
                 possible_moves.append((hexagon,piece))
@@ -607,9 +623,10 @@ def initGame():
 
 
 def randomizeAI():
-    if random.randint(0, 1) == 0:
-        return red_color
-    return blue_color
+    # if random.randint(0, 1) == 0:
+    #     return red_color
+    # return blue_color
+    return red_color
     
 
 
