@@ -1,3 +1,4 @@
+from copy import deepcopy
 import pygame
 import random
 from utils import *
@@ -367,9 +368,8 @@ def play(ai):
 
     elif turn == ai: 
         
-        pieces_state = copyState()
-        blue_pieces_copy = pieces_state[0]
-        red_pieces_copy = pieces_state[1]
+        blue_pieces_copy = deepcopy(blue_pieces)
+        red_pieces_copy = deepcopy(red_pieces)
 
         if ai == blue_color:
             minimax_result = minimax(blue_color, blue_pieces_copy, red_pieces_copy, 0)
@@ -383,7 +383,7 @@ def play(ai):
                 state = GameState.BLUE_WON
             turn = red_color
             print('Changed turn to red - ended AI turn')
-            
+
 
         else:
             # minimax_result = minimax(red_color, blue_pieces_copy, red_pieces_copy, 0)
@@ -395,54 +395,16 @@ def play(ai):
             # checkBlockChange(piece_to_move)
             # if hexagon_to_move.base == red_color:
             #     state = GameState.RED_WON
+            
             tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 3)
-            print(tree)
+  
             turn = blue_color
             print('Changed turn to blue - ended AI turn')
-             
+ 
 
 
 
 
-def minimax(color, blue_pieces_copy, red_pieces_copy, depth):
-    global blue_pieces
-    global red_pieces
-    best_score = -1000
-    piece_to_move = None
-    hexagon_to_move = None
-    
-    if(color == blue_color):
-        same_color_p = blue_pieces
-        other_color_p = red_pieces
-    else:
-        same_color_p = red_pieces
-        other_color_p = blue_pieces
-   
-    moves = getAllPossibleMoves(color)
-    
-    for move in moves:
-        piece = move[1]
-        new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
-        hexagon = move[0]
-        Piece.move(piece, hexagon.pos_n, hexagon.position)
-        checkBlockChange(piece)
-        evaluateGame()
-        score = getTeamScore(same_color_p)
-        if score > best_score:
-            best_score = score
-            piece_to_move = new_piece
-            hexagon_to_move = hexagon
-
-        
-        blue_pieces = blue_pieces_copy
-        red_pieces = red_pieces_copy
-        
-
-    for p in red_pieces_copy:
-        if p.pos_n == piece_to_move.pos_n:
-            piece_to_move = p
-    
-    return piece_to_move, hexagon_to_move
 
 
 def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
@@ -465,56 +427,64 @@ def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
     blue_pieces = blue_pieces_copy
     red_pieces = red_pieces_copy
     
-    print_tree(tree.nodes[0])
+    with open('output.txt', 'w') as f:
+        for node in nodes:
+            f.write(print_tree(node))
+
     return tree
 
 
 
 def print_tree(node, depth=0):
-    if node is None:
-        return
-    print("  " * depth + f"Depth: {depth}, Value: {node.value}, Type: {node.type}, Data: {node.data[0].pos_n + 1} -> {node.data[1].pos_n + 1}")
-    if node.children:
-        for child in node.children:
-            print_tree(child, depth + 1)
+    output = ' ' * depth + 'Depth: ' + str(depth) + ' Value: ' + str(node.value) + ' Type: ' + node.type + ' Data: ' + str(node.data[0].pos_n) + ' to '  +str(node.data[1].pos_n) + '\n'
+    for child in node.children:
+        output += print_tree(child, depth + 1)
+    return output
 
 
-def evolveMove(depth, move, same_color_p, other_color_p, Maximizing):
-        node = Node(None, None, None, None)
-        print(f'Depth: {depth}')
-       
-        if Maximizing:
-            type = 'Max'
-        else:
-            type = 'Min'
+def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha=float('-inf'), beta=float('inf')):
+    node = Node(None, None, None, None)
 
-        if depth == 0:
-            return None
-        
-        piece = move[1]
-        new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
-        hexagon = move[0]
-        data = (new_piece, hexagon)
+    if Maximizing:
+        type = 'Max'
+    else:
+        type = 'Min'
 
-        Piece.move(piece, hexagon.pos_n, hexagon.position)
-        checkBlockChange(piece)
-        evaluateGame()
-        score = getTeamScore(same_color_p)
-        print(score)
+    piece = move[1]
+    new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
+    hexagon = move[0]
+    data = (new_piece, hexagon)
 
-        node_children = []
+    Piece.move(piece, hexagon.pos_n, hexagon.position)
+    checkBlockChange(piece)
+    evaluateGame()
+    if (same_color_p[0].color == blue_color):
+        score = blue_score
+    else:
+        score = red_score
 
-        for move in getAllPossibleMoves(other_color_p[0].color):
-            child_node = evolveMove(depth - 1, move, other_color_p, same_color_p, not Maximizing)
-            node_children.append(child_node)
-
-        node = Node(score, data, node_children, type)
-
+    if depth == 0:
+        node = Node(score, data, [], type)
         return node
-        
 
-    
+    node_children = []
 
+    for move in getAllPossibleMoves(other_color_p[0].color):
+        child_node = evolveMove(depth - 1, move, other_color_p, same_color_p, not Maximizing, alpha, beta)
+        node_children.append(child_node)
+
+        if Maximizing:
+            alpha = max(alpha, child_node.value)
+            if beta <= alpha:
+                break
+        else:
+            beta = min(beta, child_node.value)
+            if beta <= alpha:
+                break
+
+    node = Node(score, data, node_children, type)
+
+    return node
 
 
 
@@ -609,12 +579,36 @@ def rules():
 
 
 def evaluateGame():
-    all_pieces = blue_pieces + red_pieces
-    for piece in all_pieces:
+    global blue_score
+    global red_score
+    blue_score = 0
+    red_score = 0
+    for piece in blue_pieces:
+        distance_factor = 60 - int(distance_to_goal(piece)) / 10
         if not piece.isBlocked:
             piece.score = 3
+            piece.score += distance_factor
         else:
             piece.score = 1
+            piece.score += int(distance_factor/3)
+        blue_score += piece.score
+    for piece in red_pieces:
+        distance_factor = 60 - int(distance_to_goal(piece)) / 10
+        if not piece.isBlocked:
+            piece.score = 3
+            piece.score += int(distance_factor)
+        else:
+            piece.score = 1
+            piece.score += int(distance_factor/3)
+        red_score += piece.score
+        
+
+def distance_to_goal(piece):
+    if piece.color == blue_color:
+        goal = hexagons[34]
+    else:
+        goal = hexagons[26]
+    return goal.distance_to(piece)
 
 def getTeamScore(pieces):
     score = 0
@@ -698,6 +692,46 @@ def randomizeAI():
     return red_color
     
 
+# minmax algorithm depth1
+def minimax(color, blue_pieces_copy, red_pieces_copy, depth):
+    global blue_pieces
+    global red_pieces
+    best_score = -1000
+    piece_to_move = None
+    hexagon_to_move = None
+    
+    if(color == blue_color):
+        same_color_p = blue_pieces
+        other_color_p = red_pieces
+    else:
+        same_color_p = red_pieces
+        other_color_p = blue_pieces
+   
+    moves = getAllPossibleMoves(color)
+    
+    for move in moves:
+        piece = move[1]
+        new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
+        hexagon = move[0]
+        Piece.move(piece, hexagon.pos_n, hexagon.position)
+        checkBlockChange(piece)
+        evaluateGame()
+        score = getTeamScore(same_color_p)
+        if score > best_score:
+            best_score = score
+            piece_to_move = new_piece
+            hexagon_to_move = hexagon
+
+        
+        blue_pieces = blue_pieces_copy
+        red_pieces = red_pieces_copy
+        
+
+    for p in red_pieces_copy:
+        if p.pos_n == piece_to_move.pos_n:
+            piece_to_move = p
+    
+    return piece_to_move, hexagon_to_move
 
 
 
@@ -735,3 +769,13 @@ while running:
     # independent physics.
     dt = clock.tick(60) / 1000
     pygame.display.set_caption(f'ABOYNE - {int(clock.get_fps())} FPS')
+
+
+
+
+
+
+
+                
+
+
