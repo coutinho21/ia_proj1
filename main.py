@@ -6,6 +6,8 @@ from hexagon import Hexagon
 from piece import Piece
 from state import GameState
 from button import Button
+from tree import Tree
+from tree import Node
 
 pygame.init()
 screen = pygame.display.set_mode((1280, 720))
@@ -364,79 +366,37 @@ def play(ai):
                             break
 
     elif turn == ai: 
+        
         pieces_state = copyState()
         blue_pieces_copy = pieces_state[0]
         red_pieces_copy = pieces_state[1]
-        if ai == blue_color:
-            best_move = None
-            best_score = -1000
-            moves = getAllPossibleMoves(blue_color)
-            for move in moves:
-                piece = move[1]
-                hexagon = move[0]
-                Piece.move(piece, hexagon.pos_n, hexagon.position)
-                checkBlockChange(piece)
-                evaluateGame()
-                score = getTeamScore(blue_pieces) - getTeamScore(red_pieces)
-                if score > best_score:
-                    best_score = score
-                    best_move = move
-                
-                blue_pieces = blue_pieces_copy
-                red_pieces = red_pieces_copy
-                
 
-            piece_to_move = best_move[1]
-            for p in blue_pieces:
-                print(p.pos_n, piece_to_move.pos_n)
-            hexagon_to_move = best_move[0]
+        if ai == blue_color:
+            minimax_result = minimax(blue_color, blue_pieces_copy, red_pieces_copy, 0)
+            piece_to_move = minimax_result[0]
+            hexagon_to_move = minimax_result[1]
+            
+            print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
             Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
             checkBlockChange(piece_to_move)
             if hexagon_to_move.base == blue_color:
                 state = GameState.BLUE_WON
-
-            turn = red_color 
+            turn = red_color
             print('Changed turn to red - ended AI turn')
             
 
         else:
-            best_move = None
-            best_score = -1000
-            piece_to_move = None
-            hexagon_to_move = None
-            moves = getAllPossibleMoves(red_color)
-            for move in moves:
-                piece = move[1]
-                hexagon = move[0]
-                Piece.move(piece, hexagon.pos_n, hexagon.position)
-                checkBlockChange(piece)
-                evaluateGame()
-                score = getTeamScore(red_pieces) - getTeamScore(blue_pieces)
-                if score > best_score:
-                    print("changed")
-                    best_score = score
-                    best_move = move
-                    piece_to_move = best_move[1]
-                    print(piece_to_move.pos_n)
-                    hexagon_to_move = best_move[0]
-                
-                blue_pieces = blue_pieces_copy
-                red_pieces = red_pieces_copy
-                
-
-
-            for p in red_pieces_copy:
-                print(p.pos_n, piece_to_move.pos_n, p.pos_n == piece_to_move.pos_n)
-                if p.pos_n == piece_to_move.pos_n:
-                    print('Found piece')
-                    piece_to_move = p
-
-            Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
-            print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
-            checkBlockChange(piece_to_move)
-            if hexagon_to_move.base == red_color:
-                state = GameState.RED_WON
-
+            # minimax_result = minimax(red_color, blue_pieces_copy, red_pieces_copy, 0)
+            # piece_to_move = minimax_result[0]
+            # hexagon_to_move = minimax_result[1]
+            
+            # print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
+            # Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
+            # checkBlockChange(piece_to_move)
+            # if hexagon_to_move.base == red_color:
+            #     state = GameState.RED_WON
+            tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 3)
+            print(tree)
             turn = blue_color
             print('Changed turn to blue - ended AI turn')
              
@@ -444,8 +404,116 @@ def play(ai):
 
 
 
+def minimax(color, blue_pieces_copy, red_pieces_copy, depth):
+    global blue_pieces
+    global red_pieces
+    best_score = -1000
+    piece_to_move = None
+    hexagon_to_move = None
+    
+    if(color == blue_color):
+        same_color_p = blue_pieces
+        other_color_p = red_pieces
+    else:
+        same_color_p = red_pieces
+        other_color_p = blue_pieces
+   
+    moves = getAllPossibleMoves(color)
+    
+    for move in moves:
+        piece = move[1]
+        new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
+        hexagon = move[0]
+        Piece.move(piece, hexagon.pos_n, hexagon.position)
+        checkBlockChange(piece)
+        evaluateGame()
+        score = getTeamScore(same_color_p)
+        if score > best_score:
+            best_score = score
+            piece_to_move = new_piece
+            hexagon_to_move = hexagon
+
+        
+        blue_pieces = blue_pieces_copy
+        red_pieces = red_pieces_copy
+        
+
+    for p in red_pieces_copy:
+        if p.pos_n == piece_to_move.pos_n:
+            piece_to_move = p
+    
+    return piece_to_move, hexagon_to_move
 
 
+def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
+    nodes = []
+    global blue_pieces
+    global red_pieces
+    tree = Tree(nodes)
+    if(color == blue_color):
+        same_color_p = blue_pieces
+        other_color_p = red_pieces
+    else:
+        same_color_p = red_pieces
+        other_color_p = blue_pieces
+
+    moves = getAllPossibleMoves(color)
+    for move in moves:
+        nodes.append(evolveMove(depth, move, same_color_p, other_color_p, True))
+
+
+    blue_pieces = blue_pieces_copy
+    red_pieces = red_pieces_copy
+    
+    print_tree(tree.nodes[0])
+    return tree
+
+
+
+def print_tree(node, depth=0):
+    if node is None:
+        return
+    print("  " * depth + f"Depth: {depth}, Value: {node.value}, Type: {node.type}, Data: {node.data[0].pos_n + 1} -> {node.data[1].pos_n + 1}")
+    if node.children:
+        for child in node.children:
+            print_tree(child, depth + 1)
+
+
+def evolveMove(depth, move, same_color_p, other_color_p, Maximizing):
+        node = Node(None, None, None, None)
+        print(f'Depth: {depth}')
+       
+        if Maximizing:
+            type = 'Max'
+        else:
+            type = 'Min'
+
+        if depth == 0:
+            return None
+        
+        piece = move[1]
+        new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
+        hexagon = move[0]
+        data = (new_piece, hexagon)
+
+        Piece.move(piece, hexagon.pos_n, hexagon.position)
+        checkBlockChange(piece)
+        evaluateGame()
+        score = getTeamScore(same_color_p)
+        print(score)
+
+        node_children = []
+
+        for move in getAllPossibleMoves(other_color_p[0].color):
+            child_node = evolveMove(depth - 1, move, other_color_p, same_color_p, not Maximizing)
+            node_children.append(child_node)
+
+        node = Node(score, data, node_children, type)
+
+        return node
+        
+
+    
 
 
 
@@ -591,9 +659,10 @@ def getAllPossibleMoves(color):
                     if hexagon.base == other_color_p[0].color:
                         break
                     possible_moves.append((hexagon, piece))
-                    print(f'Adding move from {piece.pos_n } to {hexagon.pos_n  }')
         for hexagon in hexagons:
             if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
+                if hexagon.base == other_color_p[0].color:
+                    break
                 possible_moves.append((hexagon,piece))
 
     return possible_moves
