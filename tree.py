@@ -8,6 +8,3 @@ class Node:
         self.data = data
         self.children = children
         self.type = type
-
-
-    
