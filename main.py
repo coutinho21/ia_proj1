@@ -409,24 +409,33 @@ def play(ai):
             
             tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 3)
 
-            minimax(tree)
+            minimax(tree,3)
  
 
 
-def minimax(tree):
+def minimax(tree, depth):
     global blue_pieces
     global red_pieces
     global state
     global turn
 
-    best_score = -1000
+
+    best_score = 0
     piece_to_move = None
     hexagon_to_move = None
     for node in tree.nodes:
-        if node.value > best_score:
-            best_score = node.value
-            piece_to_move = node.data[0]
-            hexagon_to_move = node.data[1]
+        if depth % 2 == 0:
+            best_score = -1000
+            if node.value > best_score:
+                best_score = node.value
+                piece_to_move = node.data[0]
+                hexagon_to_move = node.data[1]
+        else:
+            best_score = 1000
+            if node.value < best_score:
+                best_score = node.value
+                piece_to_move = node.data[0]
+                hexagon_to_move = node.data[1]
 
     for p in red_pieces + blue_pieces:
         if p.pos_n == piece_to_move.pos_n:
@@ -435,6 +444,15 @@ def minimax(tree):
     print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
     Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
     checkBlockChange(piece_to_move, blue_pieces, red_pieces)
+    if piece_to_move.color == red_color:
+        other_color = blue_pieces
+    else:
+        other_color = red_pieces
+    for pc in other_color:
+        if pc.pos_n == hexagon_to_move.pos_n:
+            other_color.remove(pc)
+            break
+
     if hexagon_to_move.base == blue_color:
         state = GameState.BLUE_WON
     turn = blue_color
@@ -523,10 +541,10 @@ def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha, beta
     if depth == 0:
         if same_color_p[0].color == blue_color:
             evaluateGame(new_same_color_p, new_other_color_p)
-            score = red_score - blue_score
+            score = blue_score - red_score
         else:
             evaluateGame(new_other_color_p, new_same_color_p)
-            score = best_score - red_score
+            score = red_score - blue_score
 
         node = Node(score, data, [], type)
         return node
@@ -703,11 +721,11 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
         # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
 
         if not piece.isBlocked:
-            piece.score = 10
+            piece.score = 100
             # piece.score += int(distance_factor)
         else:
             print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
-            piece.score = 1
+            piece.score = 20
             # piece.score += int(distance_factor / 3)
         
         blue_score += piece.score
@@ -715,11 +733,11 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
     for piece in eval_red_pieces:
         # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
         if not piece.isBlocked:
-            piece.score = 10
+            piece.score = 100
             # piece.score += int(distance_factor)
         else:
             print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
-            piece.score = 1
+            piece.score = 20
             # piece.score += int(distance_factor / 3)
         red_score += piece.score
         
