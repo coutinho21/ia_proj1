@@ -2,10 +2,11 @@ from enum import Enum
 
 class GameState(Enum):
         MENU = 0
-        PvsP = 1
-        PvsAI = 2
-        AIvsAI = 3
-        RED_WON = 2
-        BLUE_WON = 3
-        QUIT = 4
-        RULES = 5
+        GAME_MODE_MENU = 1
+        PvsP = 2
+        PvsAI = 3
+        AIvsAI = 4
+        RED_WON = 5
+        BLUE_WON = 6
+        QUIT = 7
+        RULES = 8
