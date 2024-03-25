@@ -407,9 +407,9 @@ def play(ai):
             # if hexagon_to_move.base == red_color:
             #     state = GameState.RED_WON
             
-            tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 3)
+            tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 2)
 
-            minimax(tree,3)
+            minimax(tree, 2)
  
 
 
@@ -420,22 +420,14 @@ def minimax(tree, depth):
     global turn
 
 
-    best_score = 0
+    best_score = -1000
     piece_to_move = None
     hexagon_to_move = None
     for node in tree.nodes:
-        if depth % 2 == 0:
-            best_score = -1000
-            if node.value > best_score:
-                best_score = node.value
-                piece_to_move = node.data[0]
-                hexagon_to_move = node.data[1]
-        else:
-            best_score = 1000
-            if node.value < best_score:
-                best_score = node.value
-                piece_to_move = node.data[0]
-                hexagon_to_move = node.data[1]
+        if node.value > best_score:
+            best_score = node.value
+            piece_to_move = node.data[0]
+            hexagon_to_move = node.data[1]
 
     for p in red_pieces + blue_pieces:
         if p.pos_n == piece_to_move.pos_n:
@@ -444,6 +436,7 @@ def minimax(tree, depth):
     print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
     Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
     checkBlockChange(piece_to_move, blue_pieces, red_pieces)
+
     if piece_to_move.color == red_color:
         other_color = blue_pieces
     else:
@@ -451,6 +444,7 @@ def minimax(tree, depth):
     for pc in other_color:
         if pc.pos_n == hexagon_to_move.pos_n:
             other_color.remove(pc)
+            checkBlockChange(piece_to_move, blue_pieces, red_pieces)
             break
 
     if hexagon_to_move.base == blue_color:
@@ -476,7 +470,7 @@ def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
     moves = getAllPossibleMoves(same_color_p, other_color_p)
 
     for move in moves:
-        nodes.append(evolveMove(depth, move, same_color_p, other_color_p, False, float('-inf'), float('inf')))
+        nodes.append(evolveMove(color, depth, move, same_color_p, other_color_p, False, float('-inf'), float('inf')))
 
     blue_pieces = blue_pieces_copy
     red_pieces = red_pieces_copy
@@ -490,14 +484,14 @@ def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
 
 
 def print_tree(node, depth=0):
-    output = ' ' * depth + 'Depth: ' + str(depth) + ' Value: ' + str(node.value) + ' Type: ' + node.type + ' Data: ' + str(node.data[0].pos_n + 1 ) + ' to '  +str(node.data[1].pos_n + 1 ) + '\n'
+    output = ' ' * depth + 'Depth: ' + str(depth) + ' Value: ' + str(node.value) + ' Type: ' + str(node.type) + ' Data: ' + str(node.data[0].pos_n + 1 ) + ' to '  + str(node.data[1].pos_n + 1 ) + '\n'
     for child in node.children:
         output += print_tree(child, depth + 1)
     return output
 
 
 
-def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha, beta):
+def evolveMove(ai_color, depth, move, same_color_p, other_color_p, Maximizing, alpha, beta):
     node = Node(None, None, None, None)
 
     if Maximizing:
@@ -541,23 +535,28 @@ def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha, beta
     if depth == 0:
         if same_color_p[0].color == blue_color:
             evaluateGame(new_same_color_p, new_other_color_p)
-            score = blue_score - red_score
         else:
             evaluateGame(new_other_color_p, new_same_color_p)
+
+
+        if ai_color == blue_color: # ends in MAX
+            score = blue_score - red_score
+        else: # ends in MIN
             score = red_score - blue_score
 
-        node = Node(score, data, [], type)
+        node = Node(score, data, [], None)
         return node
 
+
     node_children = []
-    best_score = 0
+    best_score = -1000
 
 
     if Maximizing:
         best_score = float('-inf')
         value = float('-inf')
         for new_move in getAllPossibleMoves(new_other_color_p, new_same_color_p):
-            child_node = evolveMove(depth - 1, new_move, new_other_color_p, new_same_color_p, not Maximizing, alpha, beta)
+            child_node = evolveMove(ai_color, depth - 1, new_move, new_other_color_p, new_same_color_p, not Maximizing, alpha, beta)
             value = max(value, child_node.value)
             alpha = max(alpha, value)
             node_children.append(child_node)
@@ -572,7 +571,7 @@ def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha, beta
         best_score = float('inf')
         value = float('inf')
         for new_move in getAllPossibleMoves(new_other_color_p, new_same_color_p):
-            child_node = evolveMove(depth - 1, new_move, new_other_color_p, new_same_color_p, not Maximizing, alpha, beta)
+            child_node = evolveMove(ai_color, depth - 1, new_move, new_other_color_p, new_same_color_p, not Maximizing, alpha, beta)
             value = min(value, child_node.value)
             beta = min(beta, value)
             node_children.append(child_node)
