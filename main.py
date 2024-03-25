@@ -318,11 +318,17 @@ def play(ai):
     menuButton.draw(screen)
 
 
-    if turn == blue_color:
-        drawText(screen, "Blue's turn", blue_color, 40, 150, 100)
+    if turn != ai:
+        if turn == blue_color:
+            drawText(screen, "Blue's turn", blue_color, 40, 150, 100)
+        else:
+            drawText(screen, "Red's turn", red_color, 40, 150, 100)
     else:
-        drawText(screen, "Red's turn", red_color, 40, 150, 100)
-        
+        drawText(screen, "AI's turn...", ai, 40, 150, 100)
+    
+    pygame.display.flip()
+
+
     if checkIfWon(blue_pieces):
             state = GameState.RED_WON
             return
@@ -331,8 +337,7 @@ def play(ai):
             state = GameState.BLUE_WON
             return
 
-    # linha a meio do ecra
-    # pygame.draw.line(screen, 'green', (0,screen.get_height() / 2), (screen.get_width(), screen.get_height() / 2))
+
     if turn != ai:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -382,38 +387,12 @@ def play(ai):
         blue_pieces_copy = copy[0]
         red_pieces_copy = copy[1]
 
-        if ai == blue_color:
-            # minimax_result = minimax(blue_color, blue_pieces_copy, red_pieces_copy, 0)
-            # piece_to_move = minimax_result[0]
-            # hexagon_to_move = minimax_result[1]
-            
-            # print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
-            # Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
-            # checkBlockChange(piece_to_move)
-            # if hexagon_to_move.base == blue_color:
-            #     state = GameState.BLUE_WON
-            turn = red_color
-            # print('Changed turn to red - ended AI turn')
-
-
-        else:
-            # minimax_result = minimax(red_color, blue_pieces_copy, red_pieces_copy, 0)
-            # piece_to_move = minimax_result[0]
-            # hexagon_to_move = minimax_result[1]
-            
-            # print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
-            # Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
-            # checkBlockChange(piece_to_move)
-            # if hexagon_to_move.base == red_color:
-            #     state = GameState.RED_WON
-            
-            tree = buildTreeMiniMax(red_color, blue_pieces_copy, red_pieces_copy, 2)
-
-            minimax(tree, 2)
+        tree = buildTreeMiniMax(ai, blue_pieces_copy, red_pieces_copy, 3)
+        minimax(tree)
  
 
 
-def minimax(tree, depth):
+def minimax(tree):
     global blue_pieces
     global red_pieces
     global state
@@ -421,21 +400,30 @@ def minimax(tree, depth):
 
 
     best_score = -1000
+    best_set = []
     piece_to_move = None
     hexagon_to_move = None
     for node in tree.nodes:
-        if node.value > best_score:
+        if node.value == best_score:
+            best_set.append(node)
+        elif node.value > best_score:
             best_score = node.value
             piece_to_move = node.data[0]
             hexagon_to_move = node.data[1]
+            best_set = [node]
+
+    random_data = random.choice(best_set)
+    piece_to_move = random_data.data[0]
+    hexagon_to_move = random_data.data[1]
 
     for p in red_pieces + blue_pieces:
         if p.pos_n == piece_to_move.pos_n:
             piece_to_move = p
 
-    print(f'Moving piece from {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
+
     Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
     checkBlockChange(piece_to_move, blue_pieces, red_pieces)
+
 
     if piece_to_move.color == red_color:
         other_color = blue_pieces
@@ -449,8 +437,16 @@ def minimax(tree, depth):
 
     if hexagon_to_move.base == blue_color:
         state = GameState.BLUE_WON
-    turn = blue_color
-    print('Changed turn to blue - ended AI turn')
+
+    if hexagon_to_move.base == red_color:
+        state = GameState.RED_WON
+
+    if turn == blue_color:
+        turn = red_color
+        print('Changed turn to red - ended AI turn')
+    else:
+        turn = blue_color
+        print('Changed turn to blue - ended AI turn')
 
 
 
@@ -475,9 +471,9 @@ def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
     blue_pieces = blue_pieces_copy
     red_pieces = red_pieces_copy
 
-    with open('output.txt', 'w') as f:
-        for node in nodes:
-            f.write(print_tree(node))
+    # with open('output.txt', 'w') as f:
+    #     for node in nodes:
+    #         f.write(print_tree(node))
 
     return tree
 
@@ -717,27 +713,25 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
     red_score = 0
 
     for piece in eval_blue_pieces:
-        # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
+        distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
 
         if not piece.isBlocked:
             piece.score = 100
-            # piece.score += int(distance_factor)
+            piece.score += int(distance_factor)
         else:
-            print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
             piece.score = 20
-            # piece.score += int(distance_factor / 3)
+            piece.score += int(distance_factor / 3)
         
         blue_score += piece.score
 
     for piece in eval_red_pieces:
-        # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
+        distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
         if not piece.isBlocked:
             piece.score = 100
-            # piece.score += int(distance_factor)
+            piece.score += int(distance_factor)
         else:
-            print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
             piece.score = 20
-            # piece.score += int(distance_factor / 3)
+            piece.score += int(distance_factor / 3)
         red_score += piece.score
         
 
@@ -790,54 +784,11 @@ def initGame():
 
 
 
-
 def randomizeAI():
-    # if random.randint(0, 1) == 0:
-    #     return red_color
-    # return blue_color
-    return red_color
-    
-
-# minmax algorithm depth1
-# def minimax(color, blue_pieces_copy, red_pieces_copy, depth):
-#     global blue_pieces
-#     global red_pieces
-#     best_score = -1000
-#     piece_to_move = None
-#     hexagon_to_move = None
-    
-#     if(color == blue_color):
-#         same_color_p = blue_pieces
-#         other_color_p = red_pieces
-#     else:
-#         same_color_p = red_pieces
-#         other_color_p = blue_pieces
-   
-#     moves = getAllPossibleMoves(color)
-    
-#     for move in moves:
-#         piece = move[1]
-#         new_piece = Piece(piece.position, piece.color, piece.pos_n, piece.selected, piece.isBlocked)
-#         hexagon = move[0]
-#         Piece.move(piece, hexagon.pos_n, hexagon.position)
-#         checkBlockChange(piece)
-#         evaluateGame()
-#         score = getTeamScore(same_color_p)
-#         if score > best_score:
-#             best_score = score
-#             piece_to_move = new_piece
-#             hexagon_to_move = hexagon
-
-        
-#         blue_pieces = blue_pieces_copy
-#         red_pieces = red_pieces_copy
-        
-
-#     for p in red_pieces_copy:
-#         if p.pos_n == piece_to_move.pos_n:
-#             piece_to_move = p
-    
-#     return piece_to_move, hexagon_to_move
+    random.seed()
+    if random.randint(0, 1) == 0:
+        return red_color
+    return blue_color
 
 
 
@@ -846,18 +797,17 @@ def randomizeAI():
 ##   
         
 initGame()
-ai = randomizeAI()
+ai_color = randomizeAI()
 
 while running:
     if state == GameState.MENU:
         menu()
-
     elif state == GameState.PvsP:
         play(None)
     elif state == GameState.PvsAI:
         #escolher cor e dificuldade
         #PvsAI_play(player_color, difficulty)
-        play(ai)
+        play(ai_color)
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
         winStates()
     elif state == GameState.RULES:
