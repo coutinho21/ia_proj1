@@ -126,7 +126,12 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
             return True
         return False
     
-    goalPiece = getPieceByPos(hexagon.pos_n)
+    if same_color_p[0].color == blue_color:
+        goalPiece = getPieceByPos(hexagon.pos_n, same_color_p, other_color_p)
+    else:
+        goalPiece = getPieceByPos(hexagon.pos_n, other_color_p, same_color_p)
+
+
     if goalPiece in same_color_p:
         return False
 
@@ -152,7 +157,12 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
     if best_hex == None:
         return False
 
-    new_near_piece = getPieceByPos(best_hex.pos_n)
+
+    if same_color_p[0].color == blue_color:
+        new_near_piece = getPieceByPos(best_hex.pos_n, same_color_p, other_color_p)
+    else:
+        new_near_piece = getPieceByPos(best_hex.pos_n, other_color_p, same_color_p)
+
     nearby_goal = getNearbyHexagons(hexagon)
     
 
@@ -168,7 +178,7 @@ def checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
 def checkBlockChange(piece, new_blue_pieces, new_red_pieces):
     hexagons = getNearbyHexagons(piece)
     for hex in hexagons:
-        piece = getPieceByPos(hex.pos_n)
+        piece = getPieceByPos(hex.pos_n, new_blue_pieces, new_red_pieces)
         if piece != None:
             if piece.color == red_color:
                 checkBlock(piece, new_blue_pieces)
@@ -190,8 +200,8 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                         if hexagon not in nearby_hexagons:
                             if checkIfCanJumpOver(piece, hexagon, same_color_p, other_color_p):
                                 print(f'Jumping piece from {piece.pos_n + 1} to {hexagon.pos_n + 1}')
-                                if getPieceByPos(hexagon.pos_n) != None:
-                                    other_color_p.remove(getPieceByPos(hexagon.pos_n))
+                                if getPieceByPos(hexagon.pos_n, blue_pieces, red_pieces) != None:
+                                    other_color_p.remove(getPieceByPos(hexagon.pos_n, blue_pieces, red_pieces))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 checkBlockChange(piece, blue_pieces, red_pieces)
                                 if hexagon.base == other_color_p[0].color :
@@ -261,11 +271,11 @@ def getHexagonByPos(pos):
                 return hexagon
         return None
 
-def getPieceByPos(pos):
-    for piece in blue_pieces:
+def getPieceByPos(pos, new_blue_pieces, new_red_pieces):
+    for piece in new_blue_pieces:
         if piece.pos_n == pos:
             return piece
-    for piece in red_pieces:
+    for piece in new_red_pieces:
         if piece.pos_n == pos:
             return piece
     return None
@@ -448,7 +458,7 @@ def buildTreeMiniMax(color, blue_pieces_copy, red_pieces_copy, depth):
     moves = getAllPossibleMoves(same_color_p, other_color_p)
 
     for move in moves:
-        nodes.append(evolveMove(depth, move, same_color_p, other_color_p, True, float('-inf'), float('inf')))
+        nodes.append(evolveMove(depth, move, same_color_p, other_color_p, False, float('-inf'), float('inf')))
 
     blue_pieces = blue_pieces_copy
     red_pieces = red_pieces_copy
@@ -513,10 +523,10 @@ def evolveMove(depth, move, same_color_p, other_color_p, Maximizing, alpha, beta
     if depth == 0:
         if same_color_p[0].color == blue_color:
             evaluateGame(new_same_color_p, new_other_color_p)
-            score = blue_score
+            score = red_score - blue_score
         else:
             evaluateGame(new_other_color_p, new_same_color_p)
-            score = red_score
+            score = best_score - red_score
 
         node = Node(score, data, [], type)
         return node
@@ -690,27 +700,27 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
     red_score = 0
 
     for piece in eval_blue_pieces:
-        distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
+        # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
 
         if not piece.isBlocked:
             piece.score = 10
-            piece.score += int(distance_factor)
+            # piece.score += int(distance_factor)
         else:
             print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
             piece.score = 1
-            piece.score += int(distance_factor / 3)
+            # piece.score += int(distance_factor / 3)
         
         blue_score += piece.score
 
     for piece in eval_red_pieces:
-        distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
+        # distance_factor = (60 - int(distance_to_goal(piece)) / 10) / 3
         if not piece.isBlocked:
             piece.score = 10
-            piece.score += int(distance_factor)
+            # piece.score += int(distance_factor)
         else:
             print('The piece ' + str(piece.pos_n + 1) + ' is blocked')
             piece.score = 1
-            piece.score += int(distance_factor / 3)
+            # piece.score += int(distance_factor / 3)
         red_score += piece.score
         
 
