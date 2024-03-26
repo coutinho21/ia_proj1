@@ -335,12 +335,12 @@ def play(ai, depth = 1):
 
 
     if checkIfWon(blue_pieces):
-            state = GameState.RED_WON
-            return
+        state = GameState.RED_WON
+        return
 
     if checkIfWon(red_pieces):
-            state = GameState.BLUE_WON
-            return
+        state = GameState.BLUE_WON
+        return
 
 
 
@@ -415,7 +415,7 @@ def minimax(tree):
     global turn
 
 
-    best_score = -1000
+    best_score = float('-inf')
     best_set = []
     piece_to_move = None
     hexagon_to_move = None
@@ -452,10 +452,16 @@ def minimax(tree):
             break
 
     if hexagon_to_move.base == blue_color:
+        pygame.display.flip()
         state = GameState.BLUE_WON
+        print('Blue won')
+        return
 
     if hexagon_to_move.base == red_color:
+        pygame.display.flip()
         state = GameState.RED_WON
+        print('Red won')
+        return
 
     if turn == blue_color:
         turn = red_color
