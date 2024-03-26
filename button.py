@@ -13,7 +13,7 @@ class Button(Object):
         self.text_size = text_size
         self.shape = shape
 
-    def draw(self, screen):
+    def draw(self, screen, color=(220,190,131)):
         if self.shape == 'rect':
             pygame.draw.rect(screen, self.color, (self.x, self.y, self.size[0], self.size[1]))
             drawText(screen, self.text, 'black', self.text_size, self.x + self.size[0] / 2, self.y + self.size[1] / 2)
@@ -21,7 +21,7 @@ class Button(Object):
             pi2 = 2 * 3.14
             points = [(sin(i / 6 * pi2) * self.size[0] + self.x, cos(i / 6 * pi2) * self.size[1] + self.y) for i in range(0, 6)]
             mouse_pos = pygame.mouse.get_pos()
-            hexagon_rect = pygame.draw.polygon(screen, (220,190,131), points)
+            hexagon_rect = pygame.draw.polygon(screen, color, points)
             pygame.draw.lines(screen, self.color, True, points,3)
 
             if hexagon_rect.collidepoint(mouse_pos):

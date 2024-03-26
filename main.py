@@ -1,4 +1,3 @@
-from copy import copy, deepcopy
 import pygame
 import random
 from utils import *
@@ -38,7 +37,10 @@ red_pieces = []
 blue_score = 0
 red_score = 0
 state = GameState.MENU
-gamegoing = False
+currentModeState = None
+gamegoing, drawButtons, isClickedPvsAI, isClickedAIvsAI = False, False, False, False
+difficulty = 1
+currentModeDifficulty = None
 
 
 def initBoard():
@@ -64,7 +66,7 @@ def drawBoard():
                 hexagons[i].base = blue_color
             hexagons[i].draw(hexagons[i].Surface ,hexagons[i].color, hexagons[i].radius, hexagons[i].position)
             font = pygame.font.Font(None, 15)
-            text = font.render(str(i+1), 1, (10, 10, 10))
+            text = font.render(str(i + 1), 1, (10, 10, 10))
             hexagons[i].Surface.blit(text, (hexagons[i].position.x - 27, hexagons[i].position.y - 27))
 
 
@@ -302,7 +304,7 @@ def checkIfWon(pieces):
     return True
 
 
-def play(ai):
+def play(ai, depth = 1):
     global turn
     global running
     global state
@@ -391,7 +393,7 @@ def play(ai):
         blue_pieces_copy = copy[0]
         red_pieces_copy = copy[1]
 
-        tree = buildTreeMiniMax(ai, blue_pieces_copy, red_pieces_copy, 3)
+        tree = buildTreeMiniMax(ai, blue_pieces_copy, red_pieces_copy, depth)
         minimax(tree)
 
 
@@ -401,7 +403,7 @@ def play(ai):
         blue_pieces_copy = copy[0]
         red_pieces_copy = copy[1]
 
-        tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, 3)
+        tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, depth)
         minimax(tree)
  
 
@@ -649,7 +651,7 @@ def winStates():
 
     menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), color, 'Menu', (60, 60),GameState.MENU, 32,'hexagon')
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), color, 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
-    playAgainButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), color, 'Replay', (60, 60), GameState.PvsAI, 32, 'hexagon')
+    playAgainButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), color, 'Replay', (60, 60), currentModeState, 32, 'hexagon')
     menuButton.draw(screen)
     quitButton.draw(screen)
     playAgainButton.draw(screen)
@@ -676,7 +678,7 @@ def menu():
     quitButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'Quit', (60, 60), GameState.QUIT, 32, 'hexagon')
     rulesButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'Rules', (60, 60), GameState.RULES, 32, 'hexagon')
     if gamegoing:
-        resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), GameState.PvsAI, 32, 'hexagon')
+        resumeButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 151), (192,157,89), 'Resume', (60, 60), currentModeState, 32, 'hexagon')
         resumeButton.draw(screen)
 
     playButton.draw(screen)
@@ -700,17 +702,38 @@ def menu():
 def gameModeMenu():
     global state
     global gamegoing
+    global difficulty
+    global drawButtons
+    global currentModeDifficulty
+    global isClickedPvsAI, isClickedAIvsAI
+
     screen.fill((220,190,131))
-    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 150)
-    drawText(screen, "Choose game mode", 'black', 40, screen.get_width() / 2, 220)
-    PvsPButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 30), (192,157,89), 'P vs P', (60, 60),GameState.PvsP, 32,'hexagon')
-    PvsAIButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 60), (192,157,89), 'P vs AI', (60, 60), GameState.PvsAI, 32, 'hexagon')
-    AIvsAIButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 62), (192,157,89), 'AI vs AI', (60, 60), GameState.AIvsAI, 32, 'hexagon')
-    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 + 151), (192,157,89), 'Menu', (60, 60), GameState.MENU, 32, 'hexagon')
+    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
+    drawText(screen, "Choose game mode", 'black', 40, screen.get_width() / 2, 180)
+    PvsPButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 80), (192,157,89), 'P vs P', (60, 60), GameState.PvsP, 32,'hexagon')
+    PvsAIButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 10), (192,157,89), 'P vs AI', (60, 60), GameState.PvsAI, 32, 'hexagon')
+    AIvsAIButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 12), (192,157,89), 'AI vs AI', (60, 60), GameState.AIvsAI, 32, 'hexagon')
+    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 + 101), (192,157,89), 'Menu', (60, 60), GameState.MENU, 32, 'hexagon')
+    difficultyEasyButton = Button((screen.get_width() / 2 - 105, screen.get_height() / 2 + 222), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
+    difficultyMediumButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 222), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
+    difficultyHardButton = Button((screen.get_width() / 2 + 105, screen.get_height() / 2 + 222), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
     PvsPButton.draw(screen)
-    PvsAIButton.draw(screen)
-    AIvsAIButton.draw(screen)
+    if isClickedPvsAI:
+        PvsAIButton.draw(screen, (192,157,89))
+    else:
+        PvsAIButton.draw(screen)
+    
+    if isClickedAIvsAI:
+        AIvsAIButton.draw(screen, (192,157,89))
+    else:
+        AIvsAIButton.draw(screen)
     menuButton.draw(screen)
+
+    if drawButtons:
+        difficultyEasyButton.draw(screen)
+        difficultyMediumButton.draw(screen)
+        difficultyHardButton.draw(screen)
+
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if PvsPButton.is_clicked():
@@ -719,17 +742,35 @@ def gameModeMenu():
                 gamegoing = True
                 break
             elif PvsAIButton.is_clicked():
-                state = PvsAIButton.action
-                initGame()
-                gamegoing = True
-                break
+                drawButtons = True
+                isClickedPvsAI = True
+                isClickedAIvsAI = False
+                currentModeDifficulty = PvsAIButton.action
             elif AIvsAIButton.is_clicked():
-                state = AIvsAIButton.action
-                initGame()
-                gamegoing = True
-                break
+                drawButtons = True
+                isClickedAIvsAI = True
+                isClickedPvsAI = False
+                currentModeDifficulty = AIvsAIButton.action
             elif menuButton.is_clicked():
                 state = menuButton.action
+                break
+            elif difficultyEasyButton.is_clicked():
+                difficulty = 1
+                state = currentModeDifficulty
+                initGame()
+                gamegoing = True
+                break
+            elif difficultyMediumButton.is_clicked():
+                difficulty = 2
+                state = currentModeDifficulty
+                initGame()
+                gamegoing = True
+                break
+            elif difficultyHardButton.is_clicked():
+                difficulty = 3
+                state = currentModeDifficulty
+                initGame()
+                gamegoing = True
                 break
 
 
@@ -848,20 +889,43 @@ ai_color = randomizeAI()
 
 while running:
     if state == GameState.MENU:
+        drawButtons = False
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
         menu()
     elif state == GameState.GAME_MODE_MENU:
         gameModeMenu()
     elif state == GameState.PvsP:
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
+        drawButtons = False
+        currentModeState = GameState.PvsP
         play(None)
     elif state == GameState.PvsAI:
-        play(ai_color)
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
+        drawButtons = False
+        currentModeState = GameState.PvsAI
+        play(ai_color, difficulty)
     elif state == GameState.AIvsAI:
-        play(ai_vs_ai_color)
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
+        drawButtons = False
+        currentModeState = GameState.AIvsAI
+        play(ai_vs_ai_color, difficulty)
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
+        drawButtons = False
         winStates()
     elif state == GameState.RULES:
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
+        drawButtons = False
         rules()
     elif state == GameState.QUIT:
+        isClickedPvsAI = False
+        isClickedAIvsAI = False
         running = False
         pygame.quit()
 
