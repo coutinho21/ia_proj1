@@ -207,24 +207,27 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                     other_color_p.remove(getPieceByPos(hexagon.pos_n, blue_pieces, red_pieces))
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 checkBlockChange(piece, blue_pieces, red_pieces)
-                                if hexagon.base == other_color_p[0].color :
+                                if hexagon.base == other_color_p[0].color:
                                     print('That is not your base')
                                     return False
                                 elif hexagon.base == piece.color:
                                     if piece.color == red_color:
-                                        print('You win')
+                                        screen.fill((220,190,131))
+                                        drawBoard()
+                                        drawPieces()
                                         state = GameState.RED_WON
                                     elif piece.color == blue_color:
-                                        print('You win')
+                                        screen.fill((220,190,131))
+                                        drawBoard()
+                                        drawPieces()
                                         state = GameState.BLUE_WON
-                                    
                                     Piece.move(piece, hexagon.pos_n, hexagon.position)
                                     return True
-                                
                                 return True
                             else:
                                 print('Cannot make that move')
                                 return False
+
                 check = False
                 for hexagon in nearby_hexagons:
                     if hexagon.is_clicked():
@@ -241,15 +244,19 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
                                 return False
                             elif hexagon.base == piece.color:
                                 if piece.color == red_color:
-                                    print('You win')
+                                    screen.fill((220,190,131))
+                                    drawBoard()
+                                    drawPieces()
                                     state = GameState.RED_WON
                                 elif piece.color == blue_color:
-                                    print('You win')
+                                    screen.fill((220,190,131))
+                                    drawBoard()
+                                    drawPieces()
                                     state = GameState.BLUE_WON
                                 
                                 Piece.move(piece, hexagon.pos_n, hexagon.position)
                                 return True
-                            
+
                         for p in other_color_p:
                             if p.pos_n == hexagon.pos_n:
                                 print('There is an enemy piece in that position')
@@ -264,15 +271,12 @@ def movePiece(piece, nearby_hexagons, same_color_p, other_color_p):
 
 
 
-
-
-
-
 def getHexagonByPos(pos):
         for hexagon in hexagons:
             if hexagon.pos_n == pos:
                 return hexagon
         return None
+
 
 def getPieceByPos(pos, new_blue_pieces, new_red_pieces):
     for piece in new_blue_pieces:
@@ -295,7 +299,7 @@ def checkBlock(piece, other_color_p):
 
     if not flag:
         piece.isBlocked = False
-    
+
 
 def checkIfWon(pieces):
     for piece in pieces:
@@ -353,6 +357,9 @@ def play(ai, depth = 1):
                     state = menuButton.action
                     break
                 if turn == blue_color:
+                    if checkIfWon(blue_pieces):
+                        state = GameState.RED_WON
+                        return
                     for piece in blue_pieces:
                         if piece.is_clicked() and not piece.isBlocked:
                             pygame.draw.circle(screen, blue_color, piece.position, 30)
@@ -364,6 +371,9 @@ def play(ai, depth = 1):
                                 turn = red_color
                                 print('Changed turn to red')
                             elif state == GameState.BLUE_WON:
+                                screen.fill((220,190,131))
+                                drawBoard()
+                                drawPieces()
                                 print('Blue won')
                             
                             break
@@ -383,6 +393,9 @@ def play(ai, depth = 1):
                                 turn = blue_color
                                 print('Changed turn to blue')
                             elif state == GameState.RED_WON:
+                                screen.fill((220,190,131))
+                                drawBoard()
+                                drawPieces()
                                 print('Red won')
                             
                             break
@@ -452,13 +465,17 @@ def minimax(tree):
             break
 
     if hexagon_to_move.base == blue_color:
-        pygame.display.flip()
+        screen.fill((220,190,131))
+        drawBoard()
+        drawPieces()
         state = GameState.BLUE_WON
         print('Blue won')
         return
 
     if hexagon_to_move.base == red_color:
-        pygame.display.flip()
+        screen.fill((220,190,131))
+        drawBoard()
+        drawPieces()
         state = GameState.RED_WON
         print('Red won')
         return
@@ -641,7 +658,6 @@ def getAllPossibleMoves(same_color_p, other_color_p):
 def winStates():
     global state
     global gamegoing
-    
 
 
     pygame.draw.rect(screen, (220,190,131), (0,0,300,200))
@@ -818,6 +834,9 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
             piece.score = 20
             piece.score += int(distance_factor / 3)
         
+        if piece.pos_n == 26:
+            piece.score += float('inf')
+
         blue_score += piece.score
 
     for piece in eval_red_pieces:
@@ -828,6 +847,10 @@ def evaluateGame(eval_blue_pieces, eval_red_pieces):
         else:
             piece.score = 20
             piece.score += int(distance_factor / 3)
+
+        if piece.pos_n == 34:
+            piece.score += float('inf')
+        
         red_score += piece.score
         
 
