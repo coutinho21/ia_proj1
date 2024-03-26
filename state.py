@@ -10,3 +10,5 @@ class GameState(Enum):
         BLUE_WON = 6
         QUIT = 7
         RULES = 8
+        DIFFICULTY_MENU = 9
+        DIFFICULTY_MENU2 = 10
