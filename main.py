@@ -337,7 +337,8 @@ def play(ai):
     if checkIfWon(red_pieces):
             state = GameState.BLUE_WON
             return
-
+    
+    print(ai_vs_ai_color)
 
     if turn != ai and ai != ai_vs_ai_color:
         for event in pygame.event.get():
@@ -354,7 +355,7 @@ def play(ai):
                             pygame.display.flip()
                             nearby_hexagons = getNearbyHexagons(piece)
                             change_turn = movePiece(piece, nearby_hexagons, blue_pieces, red_pieces)
-                            if change_turn and state == GameState.PvsAI:
+                            if change_turn and (state == GameState.PvsP or state == GameState.PvsAI):
                                 checkBlock(piece, red_pieces)
                                 turn = red_color
                                 print('Changed turn to red')
@@ -373,7 +374,7 @@ def play(ai):
                             pygame.display.flip()
                             nearby_hexagons = getNearbyHexagons(piece)
                             change_turn = movePiece(piece, nearby_hexagons, red_pieces, blue_pieces)
-                            if change_turn and state == GameState.PvsAI:
+                            if change_turn and (state == GameState.PvsP or state == GameState.PvsAI):
                                 checkBlock(piece, blue_pieces)
                                 turn = blue_color
                                 print('Changed turn to blue')
