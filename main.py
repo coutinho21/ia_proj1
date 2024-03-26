@@ -319,13 +319,15 @@ def play(ai):
     menuButton.draw(screen)
 
 
-    if turn != ai:
+    if turn != ai and ai != ai_vs_ai_color:
         if turn == blue_color:
             drawText(screen, "Blue's turn", blue_color, 40, 150, 100)
         else:
             drawText(screen, "Red's turn", red_color, 40, 150, 100)
-    else:
+    elif turn == ai:
         drawText(screen, "AI's turn...", ai, 40, 150, 100)
+    elif ai == ai_vs_ai_color:
+        drawText(screen, "AI's turn...", turn, 40, 150, 100)
     
     pygame.display.flip()
 
@@ -337,8 +339,8 @@ def play(ai):
     if checkIfWon(red_pieces):
             state = GameState.BLUE_WON
             return
-    
-    print(ai_vs_ai_color)
+
+
 
     if turn != ai and ai != ai_vs_ai_color:
         for event in pygame.event.get():
@@ -853,7 +855,7 @@ while running:
         play(None)
     elif state == GameState.PvsAI:
         play(ai_color)
-    elif state == GameState.PvsAI:
+    elif state == GameState.AIvsAI:
         play(ai_vs_ai_color)
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
         winStates()
@@ -862,7 +864,7 @@ while running:
     elif state == GameState.QUIT:
         running = False
         pygame.quit()
-        
+
 
     # flip() the display to put your work on screen
     pygame.display.flip()
@@ -872,13 +874,5 @@ while running:
     # independent physics.
     dt = clock.tick(60) / 1000
     pygame.display.set_caption(f'ABOYNE - {int(clock.get_fps())} FPS')
-
-
-
-
-
-
-
-                
 
 
