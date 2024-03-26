@@ -991,6 +991,7 @@ while running:
         isClickedAIvsAI = False
         drawButtons = False
         currentModeState = GameState.AIvsAI
+        print(f'AI 1: {difficulty} AI 2: {difficulty2}')
         play(ai_vs_ai_color, difficulty, difficulty2)
     elif state == GameState.RED_WON or state == GameState.BLUE_WON:
         isClickedPvsAI = False
