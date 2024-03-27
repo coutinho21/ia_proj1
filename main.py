@@ -38,11 +38,11 @@ blue_score = 0
 red_score = 0
 state = GameState.MENU
 currentModeState = None
-gamegoing, drawButtons, isClickedPvsAI, isClickedAIvsAI, isClickedDifficulty1, isClickedDifficulty2 = False, False, False, False, False, False
+gamegoing, drawButtons, isClickedPvsAI, isClickedAIvsAI = False, False, False, False
 difficulty = 1
 difficulty2 = 1
 currentModeDifficulty = None
-second = False
+d1done = False
 
 
 def initBoard():
@@ -769,7 +769,7 @@ def gameModeMenu():
                 break
 
 
-def gameDifficultyMenu(ai_n):
+def gameDifficultyMenu():
     global state
     global difficulty
     global difficulty2
@@ -783,34 +783,50 @@ def gameDifficultyMenu(ai_n):
         if event.type == pygame.MOUSEBUTTONDOWN:
             if difficultyEasyButton.is_clicked():
                 difficulty = 1
-                if ai_n == 1:
-                    state = GameState.PvsAI
-                else:
-                    state = GameState.DIFFICULTY_MENU2
+                state = GameState.PvsAI
                 return 
                 
             elif difficultyMediumButton.is_clicked():
                 difficulty = 2
-                if ai_n == 1:
-                    state = GameState.PvsAI
-                else:
-                    state = GameState.DIFFICULTY_MENU2
+                state = GameState.PvsAI
                 return 
                 
             elif difficultyHardButton.is_clicked():
                 difficulty = 3
-                if ai_n == 1:
-                    state = GameState.PvsAI
-                else:
-                    state = GameState.DIFFICULTY_MENU2
+                
+                state = GameState.PvsAI
+
                 return
                 
-    if ai_n == 2:
-        for event in pygame.event.get():
-            print('here')
-            print(difficulty, difficulty2)
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                print('event type')
+
+
+def gameDifficultyMenu2():
+    global state
+    global d1done
+    global difficulty
+    global difficulty2
+    difficultyEasyButton = Button((screen.get_width() / 2 - 105, screen.get_height() / 2 + 222), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
+    difficultyMediumButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 222), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
+    difficultyHardButton = Button((screen.get_width() / 2 + 105, screen.get_height() / 2 + 222), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
+    difficultyEasyButton.draw(screen)
+    difficultyMediumButton.draw(screen)
+    difficultyHardButton.draw(screen)
+
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if difficultyEasyButton.is_clicked() and not d1done:
+                difficulty = 1
+                d1done = True
+                
+            elif difficultyMediumButton.is_clicked() and not d1done:
+                difficulty = 2
+                d1done = True
+                
+            elif difficultyHardButton.is_clicked() and not d1done:
+                difficulty = 3
+                d1done = True
+            
+            elif d1done:
                 if difficultyEasyButton.is_clicked():
                     difficulty2 = 1
                     state = GameState.AIvsAI
@@ -825,7 +841,6 @@ def gameDifficultyMenu(ai_n):
                     difficulty2 = 3
                     state = GameState.AIvsAI
                     return
-        
                 
 
 def rules():
@@ -955,14 +970,11 @@ while running:
         isClickedAIvsAI = False
         menu()
     elif state == GameState.GAME_MODE_MENU:
-        print('Game mode menu')
         gameModeMenu()
     elif state == GameState.DIFFICULTY_MENU:
-        print('Difficulty menu')
-        gameDifficultyMenu(1)
+        gameDifficultyMenu()
     elif state == GameState.DIFFICULTY_MENU2:
-        print('Difficulty menu 2')
-        gameDifficultyMenu(2)
+        gameDifficultyMenu2()
 
     elif state == GameState.PvsP:
         isClickedPvsAI = False
