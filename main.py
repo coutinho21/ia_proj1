@@ -1,5 +1,6 @@
 import pygame
 import random
+import math
 from utils import *
 from math import *
 from hexagon import Hexagon
@@ -320,7 +321,12 @@ def play(ai, depth = 1, depth2 = 1):
     global red_pieces
     
 
+    if turn == blue_color:
+        hint_pos = (70, 130)
+    else:
+        hint_pos = (screen.get_width()-278, 130)
     menuButton = Button((screen.get_width() - 160, screen.get_height()-50), (192,157,89), 'Go back to Menu', (160, 50), GameState.MENU)
+    giveMeaHintButton = Button(hint_pos, (192,157,89), 'Give me a hint!', (160, 50), None)
     
 
     screen.fill((220,190,131))
@@ -330,14 +336,21 @@ def play(ai, depth = 1, depth2 = 1):
 
 
     if turn != ai and ai != ai_vs_ai_color:
+        giveMeaHintButton.draw(screen)
         if turn == blue_color:
             drawText(screen, "Blue's turn", blue_color, 40, 150, 100)
         else:
-            drawText(screen, "Red's turn", red_color, 40, 150, 100)
+            drawText(screen, "Red's turn", red_color, 40, screen.get_width()-200, 100)
     elif turn == ai:
-        drawText(screen, "AI's turn...", ai, 40, 150, 100)
+        if ai == blue_color:
+            drawText(screen, "Blue AI's turn...", ai, 40, 180, 100)
+        if ai == red_color:
+            drawText(screen, "Red AI's turn...", ai, 40, screen.get_width()-200, 100)
     elif ai == ai_vs_ai_color:
-        drawText(screen, "AI's turn...", turn, 40, 150, 100)
+        if turn == blue_color:
+            drawText(screen, "Blue AI's turn...", blue_color, 40, 180, 100)
+        if turn == red_color:
+            drawText(screen, "Red AI's turn...", red_color, 40, screen.get_width()-200, 100)
     
     pygame.display.flip()
 
@@ -359,6 +372,16 @@ def play(ai, depth = 1, depth2 = 1):
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if menuButton.is_clicked():
                     state = menuButton.action
+                    break
+                if giveMeaHintButton.is_clicked():
+                    copy = copyState()
+                    blue_pieces_copy = copy[0]
+                    red_pieces_copy = copy[1]
+                    tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, 1)
+                    piece_to_move, hexagon_to_move = minimax(tree)
+                    print(f'Piece to move: {piece_to_move.pos_n + 1} to {hexagon_to_move.pos_n + 1}')
+                    showHint(piece_to_move, hexagon_to_move, turn)
+
                     break
                 if turn == blue_color:
                     if checkIfWon(blue_pieces):
@@ -411,7 +434,8 @@ def play(ai, depth = 1, depth2 = 1):
         red_pieces_copy = copy[1]
 
         tree = buildTreeMiniMax(ai, blue_pieces_copy, red_pieces_copy, depth)
-        minimax(tree)
+        piece_to_move, hexagon_to_move = minimax(tree)
+        moveAIPiece(piece_to_move, hexagon_to_move)
 
 
     elif ai == ai_vs_ai_color:
@@ -422,15 +446,50 @@ def play(ai, depth = 1, depth2 = 1):
 
         if ai_turn == 0:
             tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, depth)
-            minimax(tree)
+            piece_to_move, hexagon_to_move = minimax(tree)
+            moveAIPiece(piece_to_move, hexagon_to_move)
             ai_turn = 1
 
         else:
             tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, depth2)
-            minimax(tree)
+            piece_to_move, hexagon_to_move = minimax(tree)
+            moveAIPiece(piece_to_move, hexagon_to_move)
             ai_turn = 0
  
 
+
+def showHint(piece, hexagon, turn):
+    
+    if turn == red_color:
+        new_color = (128, 0, 0)
+        arrow_color = (255, 20, 147)
+    else:
+        new_color = (19, 15, 87)
+        arrow_color = (132, 223, 239)
+    pygame.draw.circle(screen, new_color , hexagon.position, 25)
+    
+    # Draw an arrow from piece to hexagon
+    dx = hexagon.position[0] - piece.position[0]
+    dy = hexagon.position[1] - piece.position[1]
+    angle = math.atan2(dy, dx)
+    length = math.sqrt(dx*dx + dy*dy)
+    arrow_length = 30  # or whatever you want
+    arrow_angle = math.pi / 6  # or whatever you want
+    end_point = (piece.position[0] + length * math.cos(angle), piece.position[1] + length * math.sin(angle))
+    pygame.draw.line(screen, arrow_color, piece.position, end_point, 2)
+    
+    # Draw a filled triangle for the arrowhead
+    arrowhead_points = [
+        end_point,
+        (end_point[0] - arrow_length * math.cos(angle + arrow_angle), end_point[1] - arrow_length * math.sin(angle + arrow_angle)),
+        (end_point[0] - arrow_length * math.cos(angle - arrow_angle), end_point[1] - arrow_length * math.sin(angle - arrow_angle))
+    ]
+    pygame.draw.polygon(screen, arrow_color, arrowhead_points)
+    
+    pygame.display.flip()
+    pygame.time.delay(1000)
+    pygame.draw.circle(screen, (220,190,131), hexagon.position, 25)
+    pygame.display.flip()
 
 def minimax(tree):
     global blue_pieces
@@ -460,6 +519,13 @@ def minimax(tree):
         if p.pos_n == piece_to_move.pos_n:
             piece_to_move = p
 
+    return piece_to_move, hexagon_to_move
+
+def moveAIPiece(piece_to_move, hexagon_to_move):
+    global blue_pieces
+    global red_pieces
+    global state
+    global turn
 
     Piece.move(piece_to_move, hexagon_to_move.pos_n, hexagon_to_move.position)
     checkBlockChange(piece_to_move, blue_pieces, red_pieces)

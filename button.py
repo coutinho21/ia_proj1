@@ -14,13 +14,19 @@ class Button(Object):
         self.shape = shape
 
     def draw(self, screen, color=(220,190,131)):
+        mouse_pos = pygame.mouse.get_pos()
+
         if self.shape == 'rect':
-            pygame.draw.rect(screen, self.color, (self.x, self.y, self.size[0], self.size[1]))
+            rect = pygame.draw.rect(screen, self.color, (self.x, self.y, self.size[0], self.size[1]), 3)  # Draw empty rectangle
             drawText(screen, self.text, 'black', self.text_size, self.x + self.size[0] / 2, self.y + self.size[1] / 2)
+
+            if rect.collidepoint(mouse_pos):
+                pygame.draw.rect(screen, self.color, (self.x, self.y, self.size[0], self.size[1]))  # Draw filled rectangle
+                drawText(screen, self.text, 'black', self.text_size, self.x + self.size[0] / 2, self.y + self.size[1] / 2)
+
         if self.shape == 'hexagon':
             pi2 = 2 * 3.14
             points = [(sin(i / 6 * pi2) * self.size[0] + self.x, cos(i / 6 * pi2) * self.size[1] + self.y) for i in range(0, 6)]
-            mouse_pos = pygame.mouse.get_pos()
             hexagon_rect = pygame.draw.polygon(screen, color, points)
             pygame.draw.lines(screen, self.color, True, points,3)
 
