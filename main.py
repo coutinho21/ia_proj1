@@ -19,6 +19,7 @@ pi2 = 2 * 3.14
 blue_color = (37,29,169)
 red_color = (230,0,0)
 ai_vs_ai_color = (5, 5, 5)
+ai_turn = 0
 
 #   GOAL CELL - The marked cell on the opposite side of the board.
 # 	BLOCKED STONE - A stone adjacent to an enemy stone.
@@ -311,7 +312,7 @@ def checkIfWon(pieces):
 
 
 def play(ai, depth = 1, depth2 = 1):
-    ai_turn = 0
+    global ai_turn
     global turn
     global running
     global state
@@ -418,12 +419,15 @@ def play(ai, depth = 1, depth2 = 1):
         blue_pieces_copy = copy[0]
         red_pieces_copy = copy[1]
 
+        print('ai_turn', ai_turn)
         if ai_turn == 0:
+            print(f'playingdd with depth {depth}')
             tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, depth)
             minimax(tree)
             ai_turn = 1
 
         else:
+            print(f'playing with depth {depth2}')
             tree = buildTreeMiniMax(turn, blue_pieces_copy, red_pieces_copy, depth2)
             minimax(tree)
             ai_turn = 0
@@ -768,17 +772,26 @@ def gameModeMenu():
                 state = GameState.DIFFICULTY_MENU2
                 break
 
+            elif menuButton.is_clicked():
+                state = menuButton.action
+                break
+
 
 def gameDifficultyMenu():
     global state
     global difficulty
-    global difficulty2
-    difficultyEasyButton = Button((screen.get_width() / 2 - 105, screen.get_height() / 2 + 222), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
-    difficultyMediumButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 222), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
-    difficultyHardButton = Button((screen.get_width() / 2 + 105, screen.get_height() / 2 + 222), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
+    screen.fill((220,190,131))
+    drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
+    drawText(screen, "Choose AI difficulty", 'black', 40, screen.get_width() / 2, 180)
+    difficultyEasyButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 80), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
+    difficultyMediumButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 10), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
+    difficultyHardButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 12), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
+    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 + 101), (192,157,89), 'Menu', (60, 60), GameState.MENU, 32, 'hexagon')
+
     difficultyEasyButton.draw(screen)
     difficultyMediumButton.draw(screen)
     difficultyHardButton.draw(screen)
+    menuButton.draw(screen)
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
             if difficultyEasyButton.is_clicked():
@@ -797,6 +810,10 @@ def gameDifficultyMenu():
                 state = GameState.PvsAI
 
                 return
+            
+            elif menuButton.is_clicked():
+                state = menuButton.action
+                return
                 
 
 
@@ -805,12 +822,23 @@ def gameDifficultyMenu2():
     global d1done
     global difficulty
     global difficulty2
-    difficultyEasyButton = Button((screen.get_width() / 2 - 105, screen.get_height() / 2 + 222), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
-    difficultyMediumButton = Button((screen.get_width() / 2, screen.get_height() / 2 + 222), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
-    difficultyHardButton = Button((screen.get_width() / 2 + 105, screen.get_height() / 2 + 222), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
+    if not d1done:
+        screen.fill((220,190,131))
+        drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
+        drawText(screen, "Choose AI 1 difficulty", 'black', 40, screen.get_width() / 2, 180)
+    else:
+        screen.fill((220,190,131))
+        drawText(screen, "ABOYNE", 'black', 80, screen.get_width() / 2, 100)
+        drawText(screen, "Choose AI 2 difficulty", 'black', 40, screen.get_width() / 2, 180)
+    difficultyEasyButton = Button((screen.get_width() / 2 , screen.get_height() / 2 - 80), (192,157,89), 'Easy', (60, 60), None, 32, 'hexagon')
+    difficultyMediumButton = Button((screen.get_width() / 2 - 54, screen.get_height() / 2 + 10), (192,157,89), 'Medium', (60, 60), None, 32, 'hexagon')
+    difficultyHardButton = Button((screen.get_width() / 2 + 52, screen.get_height() / 2 + 12), (192,157,89), 'Hard', (60, 60), None, 32, 'hexagon')
+    menuButton = Button((screen.get_width() / 2 , screen.get_height() / 2 + 101), (192,157,89), 'Menu', (60, 60), GameState.MENU, 32, 'hexagon')
+
     difficultyEasyButton.draw(screen)
     difficultyMediumButton.draw(screen)
     difficultyHardButton.draw(screen)
+    menuButton.draw(screen)
 
     for event in pygame.event.get():
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -825,8 +853,13 @@ def gameDifficultyMenu2():
             elif difficultyHardButton.is_clicked() and not d1done:
                 difficulty = 3
                 d1done = True
-            
+
+            elif menuButton.is_clicked():
+                state = menuButton.action
+                return
+                        
             elif d1done:
+                
                 if difficultyEasyButton.is_clicked():
                     difficulty2 = 1
                     state = GameState.AIvsAI
@@ -841,6 +874,10 @@ def gameDifficultyMenu2():
                     difficulty2 = 3
                     state = GameState.AIvsAI
                     return
+                
+                elif menuButton.is_clicked():
+                        state = menuButton.action
+                        return
                 
 
 def rules():
